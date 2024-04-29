@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="welcome-area">
-        {% if (session['role'] != 'customer') and (session['role'] != 'staff') %}
+        {% if (session['userType'] != 'Customer') and (session['userType'] != 'Staff') %}
             <h1>Welcome to Air Ticket Reservation System</h1>
         {% endif %}
     </div>

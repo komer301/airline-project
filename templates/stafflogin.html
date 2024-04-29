@@ -6,7 +6,7 @@
         <title>Login/Signup</title>
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/login.css') }}">
-        <script src="{{ url_for('static', filename='js/login.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/stafflogin.js') }}" defer></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     </head>
     <body>
@@ -25,8 +25,8 @@
                 </div>
                 <div class="form-inner">
                     <form action="" method="post" class="login">
-                        <div class="field" id="email-field">
-                            <input type="email" name="email" placeholder="Email Address" required>
+                        <div class="field" id="username-field">
+                            <input type="text" name="username" placeholder="Username">
                         </div>
                         <div class="field">
                             <input type="password" name="password" placeholder="Password" required>
@@ -36,28 +36,50 @@
                             <input type="submit" value="Login">
                         </div>
                         <div class="signup-link">
-                            Staff Member? <a href="/stafflogin">Here</a>
+                            Customer? <a href="/stafflogin">Here</a>
                         </div>
                         <div class="signup-link">
                             Return Home? <a href="/">Home</a>
                         </div>
                     </form>
-                    <form action="/signup" method="post" class="signup">
+                    <form action="/staffsignup" method="post" class="signup">
+                        <div class="field" id="username-field">
+                            <input type="text" name="username" placeholder="Username">
+                        </div>
+                        <div class="field">
+                            <input type="text" name="first_name" placeholder="First Name" required>
+                        </div>
+                        <div class="field">
+                            <input type="text" name="last_name" placeholder="Last Name" required>
+                        </div>
+                        <div class="field">
+                            <input type="date" name="date_of_birth" placeholder="Date of Birth" required>
+                        </div>
                         <div class="field">
                             <input type="email" name="email" placeholder="Email Address" required>
                         </div>
                         <div class="field">
                             <input type="password" name="password" placeholder="Password" required>
                         </div>
+                        <div class="field">
+                            <input type="tel"
+                                   name="phone_number"
+                                   id="phone_number"
+                                   placeholder="Phone Number"
+                                   required>
+                        </div>
+                        <div class="field">
+                            <select name="airline" id="airline" required>
+                                <option value="">Select Airline</option>
+                                {% for airline in airlines %}<option value="{{ airline['name'] }}">{{ airline['name'] }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="field" id="username-field-signup" style="display: none;">
+                            <input type="text" name="username" placeholder="Username">
+                        </div>
                         <div class="field btn">
                             <div class="btn-layer"></div>
                             <input type="submit" value="Signup">
-                        </div>
-                        <div class="signup-link">
-                            Staff Member? <a href="/">Here</a>
-                        </div>
-                        <div class="signup-link">
-                            Return Home? <a href="/">Home</a>
                         </div>
                     </form>
                 </div>

@@ -1,0 +1,5 @@
+# Environment variables
+.env
+
+# Other sensitive files
+config/secrets.json

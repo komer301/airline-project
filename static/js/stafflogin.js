@@ -22,7 +22,7 @@ $(document).ready(function () {
     event.preventDefault(); // Prevent default form submission
     var form = $(this);
     $.ajax({
-      url: "/login",
+      url: "/stafflogin",
       type: "POST",
       data: form.serialize(),
       success: function (response) {
@@ -41,7 +41,7 @@ $(document).ready(function () {
     event.preventDefault();
     var form = $(this);
     $.ajax({
-      url: "/signup",
+      url: "/staffsignup",
       method: "POST",
       data: form.serialize(),
       success: function (response) {
