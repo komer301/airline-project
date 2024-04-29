@@ -24,15 +24,25 @@
                     <div class="slider-tab"></div>
                 </div>
                 <div class="form-inner">
-                    <form action="/alogin" method="post" class="login">
-                        <div class="field">
+                    <form action="" method="post" class="login">
+                        <div class="field" id="email-field">
                             <input type="email" name="email" placeholder="Email Address" required>
+                        </div>
+                        <div class="field" id="username-field" style="display: none;">
+                            <input type="text" name="username" placeholder="Username">
                         </div>
                         <div class="field">
                             <input type="password" name="password" placeholder="Password" required>
                         </div>
+                        <div class="field">
+                            <select name="user_type" id="user-type-login" required>
+                                <option value="" disabled selected>Select User Type</option>
+                                <option value="customer">Customer</option>
+                                <option value="staff">Staff Member</option>
+                            </select>
+                        </div>
                         <div class="pass-link">
-                            <a href="#">Forgot password?</a>
+                            <a href="/">Forgot password?</a>
                         </div>
                         <div class="field btn">
                             <div class="btn-layer"></div>
@@ -42,7 +52,10 @@
                             Return Home? <a href="/">Home</a>
                         </div>
                     </form>
-                    <form action="/signup" method="post" class="signup">
+                    <form action="/" method="post" class="signup">
+                        <div class="field" id="username-field-signup" style="display: none;">
+                            <input type="text" name="username" placeholder="Username">
+                        </div>
                         <div class="field">
                             <input type="email" name="email" placeholder="Email Address" required>
                         </div>
@@ -50,10 +63,11 @@
                             <input type="password" name="password" placeholder="Password" required>
                         </div>
                         <div class="field">
-                            <input type="password"
-                                   name="confirm_password"
-                                   placeholder="Confirm password"
-                                   required>
+                            <select name="user_type" id="user-type-signup" required>
+                                <option value="" disabled selected>Select User Type</option>
+                                <option value="Customer">Customer</option>
+                                <option value="Staff">Staff Member</option>
+                            </select>
                         </div>
                         <div class="field btn">
                             <div class="btn-layer"></div>

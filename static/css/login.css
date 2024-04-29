@@ -193,3 +193,24 @@ form .btn input[type="submit"] {
   font-weight: 500;
   cursor: pointer;
 }
+
+.form-inner form .field select {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  padding-left: 15px;
+  border-radius: 15px;
+  border: 1px solid #ccc; /* Updated to a consistent gray */
+  font-size: 17px;
+  transition: all 0.3s ease;
+  background-color: #fff; /* Background color for dropdown */
+}
+
+.form-inner form .field select:focus {
+  border-color: #333; /* Dark gray focus */
+}
+
+.form-inner form .field select::placeholder {
+  color: #666; /* Placeholder text color */
+  transition: all 0.3s ease;
+}
