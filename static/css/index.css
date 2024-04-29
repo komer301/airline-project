@@ -1,0 +1,66 @@
+.welcome-area {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.form-container {
+  display: flex;
+  justify-content: space-between; /* This will place each child div side by side */
+  margin: 20px; /* Adjust margin as needed */
+}
+.search-area h2,
+.status-area h2 {
+  text-align: center; /* Center align the headings */
+  color: #333; /* Optional: Set the color of the text */
+  margin-bottom: 20px; /* Optional: Space below the heading */
+}
+
+.search-area,
+.status-area {
+  flex: 1; /* Each takes equal width */
+  background-color: #fff;
+  padding: 20px;
+  margin: 0 10px; /* Add margin between them */
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.flight-search-form,
+.flight-status-form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.submit-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.submit-btn {
+  background-color: #0056b3;
+  color: white;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #003d82;
+}
