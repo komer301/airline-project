@@ -10,8 +10,8 @@ app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv('SECRET_KEY')
 
-app.register_blueprint(staff_bp)
-app.register_blueprint(user_bp, url_prefix='/user')  # Adjust as necessary based on your structure
+app.register_blueprint(staff_bp, url_prefix='/staff')
+app.register_blueprint(user_bp, url_prefix='/user')
 
 
 conn = pymysql.connect(host='localhost',

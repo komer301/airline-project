@@ -8,6 +8,7 @@ import phonenumbers
 
 # Create a Blueprint for staff account management
 user_bp = Blueprint('user', __name__, url_prefix='/user')
+
 conn = pymysql.connect(host='localhost',
                        user='root',
                        password='root',
