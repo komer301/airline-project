@@ -1,73 +1,196 @@
 {% extends "account.html" %}
 {% block style %}
     <style>
-.main {
-    padding: 20px;
-}
+    .main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 20px;
+    }
 
-.welcome {
-    margin-bottom: 20px;
-}
+    .welcome {
+        flex-basis: 100%;
+        color: #333;
+        padding: 10px;
+        font-size: x-large;
+        border-radius: 5px;
+        text-align: center;
+    }
 
-.account-info {
-    background-color: #444;
-    padding: 20px;
-    margin-bottom: 20px;
-}
+    .account-info, .user-menu {
+        flex: 1 1 300px; /* Flex-grow, Flex-shrink, Flex-basis */
+        background-color: #666;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: white;
+        border-radius: 5px;
+        margin: 10px;
+    }
 
-.account-info input {
-    display: block;
-    margin: 10px 0;
-    padding: 5px;
-    color: #333;
-}
+    .account-info input, .account-info button, .user-menu a {
+        display: block;
+        width: 95%;
+        margin: 10px auto;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        text-decoration: none;
+    }
 
-.user-menu ul {
+    .user-menu a:hover, .add-phone-form input[type="submit"]:hover, .delete-phone-btn:hover {
+        background-color: #555;
+    }
+
+    .add-phone-form {
+        background-color: #777;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .add-phone-form input[name="new_phone_number"]  {
+        color: black;
+    }
+
+    .add-phone-form input[type="submit"] {
+        background-color: #333;
+        cursor: pointer;
+    }
+
+    .phone-number-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .phone-number-item {
+        background-color: #888;
+        margin: 5px 0;
+        padding: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .delete-phone-btn {
+        background-color: transparent;
+        color: #f00; /* Red color for delete button */
+        border: none;
+        cursor: pointer;
+        padding: 5px 10px;
+    }
+
+    /* Styles for flash messages */
+    .flash-messages {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 300px;
+    }
+
+    .user-menu ul {
+    list-style-type: none; /* Removes bullet points */
     padding: 0;
+    margin: 0; /* Removes default margin */
 }
 
 .user-menu li {
-    background-color: #444;
-    margin-bottom: 5px;
+    background-color: #444; /* Dark gray background for each menu item */
+    margin-bottom: 10px; /* Spacing between items */
     border-radius: 5px;
     overflow: hidden;
 }
 
 .user-menu a {
     display: block;
-    padding: 10px 20px;
+    padding: 15px 20px; /* Larger padding for better touch targets */
     text-decoration: none;
     color: white;
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
-.user-menu a:hover {
-    background-color: #555;
+.user-menu li:hover {
+    background-color: #555; /* Slightly lighter gray on hover */
 }
+    .alert {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        text-align: center;
+        color: white;
+        opacity: 1;
+        transition: opacity 0.5s linear;
+    }
+
+    .alert-error { background-color: #f44336; }
+    .alert-success { background-color: #4CAF50; }
+    .alert-info { background-color: #2196F3; }
+    .alert-warning { background-color: #ff9800; }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500); // matches the transition time
+                }, 2000); // 5000 milliseconds = 5 seconds
+            });
+        });
+    </script>
 {% endblock %}
 {% block content %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
     <main>
         <section class="welcome">
-            <h1>Hello {User}</h1>
+            <h1>Hello {{ user_first_name }}!</h1>
         </section>
-        <section class="account-info">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password">
-        </section>
-        <nav class="user-menu">
-            <ul>
-                <li>
-                    <a href="#view-flights">View My Flights</a>
-                </li>
-                <li>
-                    <a href="#ratings-comments">Ratings/Comments</a>
-                </li>
-                <li>
-                    <a href="#my-spending">My Spending</a>
-                </li>
-            </ul>
-        </nav>
+        <div class="main">
+            <section class="account-info">
+                <h2>Your Phone Numbers</h2>
+                <ul class="phone-number-list">
+                    {% for number in phone_numbers %}
+                        <li class="phone-number-item">
+                            {{ number }}
+                            <form action="{{ url_for('user.delete_phone_number', phone_number=number) }}"
+                                  method="post">
+                                <button type="submit" class="delete-phone-btn">X</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <form class="add-phone-form"
+                      action="{{ url_for("user.dashboard") }}"
+                      method="post">
+                    <input type="text"
+                           name="new_phone_number"
+                           placeholder="Add New Phone Number"
+                           required>
+                    <input type="submit" value="Add Phone Number">
+                </form>
+            </section>
+            <nav class="user-menu">
+                <ul>
+                    <li>
+                        <a href="#view-flights">View My Flights</a>
+                    </li>
+                    <li>
+                        <a href="#ratings-comments">Ratings/Comments</a>
+                    </li>
+                    <li>
+                        <a href="#my-spending">My Spending</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </main>
 {% endblock %}

@@ -1,4 +1,92 @@
 {% extends "base.html" %}
+{% block style %}
+    <style>
+
+    /* General Styles */
+    .radio-buttons {
+    display: flex;
+    justify-content: start;
+    gap: 10px; /* Adjust gap between radio buttons */
+    margin: 10px 0;
+    }
+    .radio-buttons label {
+    color: black; /* White text color for better visibility on dark backgrounds */
+    cursor: pointer;
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 12px;
+    font-size: 16px; /* Larger font size for readability */
+    user-select: none; /* Prevent text selection */
+    }
+    .radio-buttons input[type="radio"] {
+    position: absolute;
+    opacity: 0; /* Hide the default radio button */
+    cursor: pointer;
+    }
+    .radio-buttons label:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #777; /* Lighter gray background for unchecked state */
+    border: 2px solid #555; /* Darker border for definition */
+    }
+    .radio-buttons input[type="radio"]:checked + label:before {
+    background-color: #4CAF50; /* Green background for checked state */
+    }
+    .radio-buttons label:after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    opacity: 0; /* Hide the inner circle by default */
+    transition: opacity 0.1s ease-in-out;
+    }
+    .radio-buttons input[type="radio"]:checked + label:after {
+    opacity: 1; /* Show the inner circle when checked */
+    }
+    /* Specific Styles for Form Elements */
+    .account-info, .user-menu {
+    width: 48%; /* Adjust width to fit side by side */
+    float: left; /* Align elements side by side */
+    }
+    .account-info {
+    margin-right: 4%; /* Provide some space between the sections */
+    }
+    .user-menu {
+    width: 48%;
+    }
+    .user-menu ul {
+    list-style: none; /* Remove default list styling */
+    }
+    .user-menu li a {
+    display: block;
+    padding: 10px;
+    background-color: #444;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    }
+    .user-menu li a:hover {
+    background-color: #555;
+    }
+    /* Resetting float effects */
+    .form-container:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+    </style>
+{% endblock %}
 {% block content %}
     <div class="welcome-area">
         {% if (session['userType'] != 'Customer') and (session['userType'] != 'Staff') %}
@@ -6,10 +94,18 @@
         {% endif %}
     </div>
     <div class="form-container">
-        <!-- Parent container for flexbox -->
         <div class="search-area">
             <h2>Search for Flights</h2>
             <form action="/search" method="post" class="flight-search-form">
+                <div class="form-group">
+                    <label for="trip-type">Trip Type:</label>
+                    <div class="radio-buttons">
+                        <input type="radio" id="one-way" name="trip_type" value="one-way" checked>
+                        <label for="one-way">One Way</label>
+                        <input type="radio" id="round-trip" name="trip_type" value="round-trip">
+                        <label for="round-trip">Round Trip</label>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="source">Departure From:</label>
                     <input type="text"
@@ -24,6 +120,11 @@
                 <div class="form-group">
                     <label for="tdate">Departure Date:</label>
                     <input type="date" id="tdate" name="departure_date_time">
+                </div>
+                <!-- Additional field for return date if round-trip is selected -->
+                <div class="form-group return-date" style="display: none;">
+                    <label for="rdate">Return Date:</label>
+                    <input type="date" id="rdate" name="return_date_time">
                 </div>
                 <input type="submit" value="Search" class="submit-btn">
             </form>
@@ -47,4 +148,19 @@
             </form>
         </div>
     </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tripTypeRadios = document.querySelectorAll('input[name="trip_type"]');
+    const returnDateDiv = document.querySelector('.return-date');
+    tripTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'round-trip') {
+                returnDateDiv.style.display = 'block';
+            } else {
+                returnDateDiv.style.display = 'none';
+            }
+        });
+    });
+});
+    </script>
 {% endblock %}

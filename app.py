@@ -11,7 +11,7 @@ load_dotenv()
 app.secret_key = os.getenv('SECRET_KEY')
 
 app.register_blueprint(staff_bp)
-app.register_blueprint(user_bp)
+app.register_blueprint(user_bp, url_prefix='/user')  # Adjust as necessary based on your structure
 
 
 conn = pymysql.connect(host='localhost',
@@ -102,7 +102,7 @@ def process_signup():
             conn.commit()
 
         session['userType'] = 'Customer'
-        session['email'] = email
+        session['userEmail'] = email
         flash("Signup successful", 'info')
         return redirect(url_for('home'))
     
