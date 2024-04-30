@@ -12,15 +12,15 @@
     <body>
         <div class="wrapper">
             <div class="title-text">
-                <div class="title login">Login Form</div>
-                <div class="title signup">Signup Form</div>
+                <div class="title login">Customer Login</div>
+                <div class="title signup">Staff Login</div>
             </div>
             <div class="form-container">
                 <div class="slide-controls">
                     <input type="radio" name="slide" id="login" checked>
                     <input type="radio" name="slide" id="signup">
-                    <label for="login" class="slide login">Login</label>
-                    <label for="signup" class="slide signup">Signup</label>
+                    <label for="login" class="slide login">Customer</label>
+                    <label for="signup" class="slide signup">Staff</label>
                     <div class="slider-tab"></div>
                 </div>
                 <div class="form-inner">
@@ -36,25 +36,19 @@
                             <input type="submit" value="Login">
                         </div>
                         <div class="signup-link">
-                            Staff Member? <a href="/stafflogin">Here</a>
-                        </div>
-                        <div class="signup-link">
                             Return Home? <a href="/">Home</a>
                         </div>
                     </form>
                     <form action="/signup" method="post" class="signup">
                         <div class="field">
-                            <input type="email" name="email" placeholder="Email Address" required>
+                            <input type="text" name="username" placeholder="Username" required>
                         </div>
                         <div class="field">
                             <input type="password" name="password" placeholder="Password" required>
                         </div>
                         <div class="field btn">
                             <div class="btn-layer"></div>
-                            <input type="submit" value="Signup">
-                        </div>
-                        <div class="signup-link">
-                            Staff Member? <a href="/">Here</a>
+                            <input type="submit" value="Login">
                         </div>
                         <div class="signup-link">
                             Return Home? <a href="/">Home</a>

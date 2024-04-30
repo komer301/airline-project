@@ -27,6 +27,7 @@ body {
 }
 .wrapper .title-text {
   display: flex;
+  padding-bottom: 10px;
   width: 200%;
 }
 .wrapper .title {
@@ -105,7 +106,7 @@ input[type="radio"] {
 }
 .form-container .form-inner {
   display: flex;
-  width: 200%;
+  width: 100%;
 }
 .form-container .form-inner form {
   width: 50%;
@@ -215,4 +216,64 @@ form .btn input[type="submit"] {
 .form-inner form .field select::placeholder {
   color: #666; /* Placeholder text color */
   transition: all 0.3s ease;
+}
+
+.form-container .form-columns {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.column {
+  flex: 1; /* Each column takes equal width */
+  padding: 0 20px; /* Spacing between fields and outer container */
+}
+
+.field {
+  margin-bottom: 10px; /* Consistent spacing between inputs */
+}
+
+.wrapper {
+  width: 700px;
+  max-width: 800px; /* Increase wrapper width to accommodate two columns */
+}
+
+.columns {
+  display: flex;
+  justify-content: space-between; /* This ensures columns are evenly spaced */
+  margin: 20px 0; /* Adds vertical spacing */
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  width: 48%; /* Each column takes almost half the wrapper's width */
+  padding: 0 15px; /* Adds padding to avoid touching the wrapper's edges */
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+input[type="tel"] {
+  width: 100%; /* Ensures inputs take the full width of the column */
+  padding: 10px;
+  margin-bottom: 10px; /* Adds space between inputs */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.signup-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.signup-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
 }

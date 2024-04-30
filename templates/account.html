@@ -2,9 +2,10 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Airline Reservation System</title>
+        <title>Account</title>
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/index.css') }}">
+        {% block style %}{% endblock %}
         <style>
     body {
         font-family: 'Arial', sans-serif;
@@ -44,17 +45,8 @@
     <body>
         <nav class="navbar">
             <a href="{{ url_for("home") }}">Home</a>
-            {% if (session['userType'] == 'Customer') %}
-                <a href= "{{ url_for("user.dashboard") }}">Account</a>
-                <a href="{{ url_for("logout") }}">Logout</a>
-            {% elif (session['userType'] == 'Staff') %}
-                <a href= "{{ url_for("staff.dashboard") }}">Account</a>
-                <a href="{{ url_for("logout") }}">Logout</a>
-            {% else %}
-                <a href="{{ url_for("login") }}">Login</a>
-                <a href="{{ url_for("process_signup") }}">Register</a>
-                <a href="{{ url_for("process_staff_signup") }}">Staff Register</a>
-            {% endif %}
+            {% block nav %}{% endblock %}
+            <a href="{{ url_for("logout") }}">Logout</a>
         </nav>
         <div class="main-content">
             {% block content %}{% endblock %}

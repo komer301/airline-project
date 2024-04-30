@@ -26,7 +26,7 @@ $(document).ready(function () {
       type: "POST",
       data: form.serialize(),
       success: function (response) {
-        alert(response.message);
+        // alert(response.message);
         if (response.success) {
           window.location.href = "/"; // Redirect to login after signup
         }
@@ -41,11 +41,11 @@ $(document).ready(function () {
     event.preventDefault();
     var form = $(this);
     $.ajax({
-      url: "/signup",
+      url: "/stafflogin",
       method: "POST",
       data: form.serialize(),
       success: function (response) {
-        alert(response.message);
+        // alert(response.message);
         if (response.success) {
           window.location.href = "/"; // Redirect to login after signup
         }

@@ -1,0 +1,73 @@
+{% extends "account.html" %}
+{% block style %}
+    <style>
+.main {
+    padding: 20px;
+}
+
+.welcome {
+    margin-bottom: 20px;
+}
+
+.account-info {
+    background-color: #444;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.account-info input {
+    display: block;
+    margin: 10px 0;
+    padding: 5px;
+    color: #333;
+}
+
+.user-menu ul {
+    padding: 0;
+}
+
+.user-menu li {
+    background-color: #444;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.user-menu a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: white;
+}
+
+.user-menu a:hover {
+    background-color: #555;
+}
+    </style>
+{% endblock %}
+{% block content %}
+    <main>
+        <section class="welcome">
+            <h1>Hello {User}</h1>
+        </section>
+        <section class="account-info">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password">
+        </section>
+        <nav class="user-menu">
+            <ul>
+                <li>
+                    <a href="#view-flights">View My Flights</a>
+                </li>
+                <li>
+                    <a href="#ratings-comments">Ratings/Comments</a>
+                </li>
+                <li>
+                    <a href="#my-spending">My Spending</a>
+                </li>
+            </ul>
+        </nav>
+    </main>
+{% endblock %}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Staff Signup</title>
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/login.css') }}">
+        <!-- Add any additional CSS file if necessary -->
+        <style>
+            .wrapper {
+            overflow: hidden;
+            max-width: 500px;
+            width: 500px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="title-text">
+                <div class="title signup">Staff Signup</div>
+            </div>
+            <div class="form-container">
+                <div class="form-inner">
+                    <form action="{{ url_for("process_staff_signup") }}"
+                          method="post"
+                          class="signup">
+                        <div class="field">
+                            <input type="text" name="username" placeholder="Username" required>
+                        </div>
+                        <div class="field">
+                            <input type="text" name="first_name" placeholder="First Name" required>
+                        </div>
+                        <div class="field">
+                            <input type="text" name="last_name" placeholder="Last Name" required>
+                        </div>
+                        <div class="field">
+                            <input type="email" name="email" placeholder="Email Address" required>
+                        </div>
+                        <div class="field">
+                            <input type="date" name="dob" placeholder="Date of Birth" required>
+                        </div>
+                        <div class="field">
+                            <input type="password" name="password" placeholder="Password" required>
+                        </div>
+                        <div class="field">
+                            <input type="text" name="phone_number" placeholder="Phone Number" required>
+                        </div>
+                        <div class="field">
+                            <select name="airline" id="airline" required>
+                                <option value="">Select Airline</option>
+                                {% for airline in airlines %}<option value="{{ airline['name'] }}">{{ airline['name'] }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="field btn">
+                            <div class="btn-layer"></div>
+                            <input type="submit" value="Sign Up">
+                        </div>
+                        <div class="signup-link">
+                            Return Home? <a href="/">Home</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </body>
+</html>
