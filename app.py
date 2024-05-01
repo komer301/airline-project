@@ -229,7 +229,7 @@ def logout():
     # Clear all data stored in session
     session.clear()
     # Redirect to the landing page (home page in this case)
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 if __name__ == "__main__":
 	app.run(debug = True)

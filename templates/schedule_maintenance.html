@@ -1,0 +1,89 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+    <style>
+.display {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin: 20px;
+    width: auto;
+}
+.maintenance-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+label {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+input[type="text"], input[type="datetime-local"], select {
+    padding: 12px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+input:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 8px rgba(0,86,179,0.2);
+}
+.submit-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+.submit-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.sidebar #scheduleMaintenance {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>Schedule Maintenance</h2>
+        <form action="/staff/schedule-maintenance"
+              method="post"
+              class="maintenance-form">
+            <div class="form-group">
+                <label for="airplane_id">Airplane ID:</label>
+                <input type="text"
+                       id="airplane_id"
+                       name="airplane_id"
+                       required
+                       placeholder="Enter Airplane ID">
+            </div>
+            <div class="form-group">
+                <label for="start_date_time">Start Date and Time:</label>
+                <input type="datetime-local"
+                       id="start_date_time"
+                       name="start_date_time"
+                       required>
+            </div>
+            <div class="form-group">
+                <label for="end_date_time">End Date and Time:</label>
+                <input type="datetime-local"
+                       id="end_date_time"
+                       name="end_date_time"
+                       required>
+            </div>
+            <button type="submit" class="submit-btn">Schedule Maintenance</button>
+        </form>
+    </div>
+{% endblock %}
