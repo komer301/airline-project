@@ -1,0 +1,33 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+<style>
+    .display {
+            
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin: 20px;
+        width: auto;
+    }
+</style>
+{% endblock %}
+{% block display %}
+<div class="display">
+    <h1>Most Frequent Customer Flights</h1>
+    {% if frequent_customer_flights %}
+        <h2>Customer ID: {{ frequent_customer_flights[0]['customer_id'] }}</h2>
+        <ul>
+            {% for flight in frequent_customer_flights %}
+                <li>
+                    Flight ID: {{ flight['flight_id'] }},
+                    Flight Date: {{ flight['flight_date'] }},
+                    Airline: {{ flight['name'] }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No frequent customer found within the last year.</p>
+    {% endif %}
+</div>
+{% endblock %}
