@@ -1,0 +1,21 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+<style>
+    .display {
+            
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin: 20px;
+        width: auto;
+    }
+</style>
+{% endblock %}
+{% block display %}
+<div class="display">
+    <h1>Total Earned Revenue</h1>
+    <p>Total revenue earned from ticket sales in the last month: ${{ total_revenue_last_month or 0 }}</p>
+    <p>Total revenue earned from ticket sales in the last year: ${{ total_revenue_last_year or 0 }}</p>
+</div>
+{% endblock %}
