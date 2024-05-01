@@ -232,10 +232,72 @@ def schedule_maintenance():
             
             return redirect(url_for('staff.schedule_maintenance'))
         return render_template('schedule_maintenance.html')
-
-
-
     return redirect(url_for('home'))
+
+@staff_bp.route('/frequent-customer', methods=['GET'])
+def frequent_customer():
+    c = conn.cursor()
+    one_year_ago = datetime.now() - timedelta(days=365)
+
+    query = """
+        SELECT email, COUNT(*) AS num_flights
+        FROM took
+        WHERE arrival_date_time > %s
+        GROUP BY email
+        ORDER BY num_flights DESC
+        LIMIT 1
+    """
+    c.execute(query, (one_year_ago,))
+    frequent_customer_data = c.fetchone()
+    
+    if frequent_customer_data:
+        frequent_customer_id = frequent_customer_data[0]
+        query = """
+            SELECT flight.*, airplane.airline_name
+            FROM flight
+            JOIN airplane ON flight.airplane_id = airplane.id
+            WHERE flight.customer_id = %s
+            AND flight.departure_date_time > %s
+        """
+        c.execute(query, (frequent_customer_id, one_year_ago))  # Provide values as a tuple
+        taken_flights = c.fetchall()
+    else:
+        taken_flights = None
+    
+    conn.close()
+    return render_template('frequent_customer.html', taken_flights=taken_flights)
+
+@staff_bp.route('/view-earnings', methods=['GET'])
+def view_earnings():
+    c = conn.cursor()
+    
+    last_month_start = datetime.now().replace(day=1) - timedelta(days=1)
+    last_month_start = last_month_start.replace(day=1)
+    
+    last_year_start = datetime.now().replace(month=1, day=1) - timedelta(days=1)
+    last_year_start = last_year_start.replace(month=1, day=1)
+    
+    query_last_month = """
+        SELECT SUM(base_price) AS total_revenue_last_month
+        FROM took
+        WHERE arrival_date_time >= %s
+    """
+    c.execute(query_last_month, (last_month_start,))
+    last_month_row = c.fetchone()
+    last_month = last_month_row[0] if last_month_row else 0
+    
+    query_last_year = """
+        SELECT SUM(base_price) AS total_revenue_last_year
+        FROM took
+        WHERE arrival_date_time >= %s
+    """
+    c.execute(query_last_year, (last_year_start,))
+    last_year_row = c.fetchone()
+    last_year = last_year_row[0] if last_year_row else 0
+    
+    conn.close()
+    return render_template('view_earnings.html', last_month=last_month, last_year=last_year)
+
 
 
 # helper functions
