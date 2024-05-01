@@ -56,16 +56,26 @@
         color: #000;
     }
     .airplane-item {
-        padding: 10px;
-        border: 1px solid #ccc;
+        padding: 15px;
+        border: 1px solid #ddd;
         margin-bottom: 10px;
-        border-radius: 5px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .airplane-form, .airplane-list {
+    .airplane-list {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
         margin-top: 20px;
+    }
+    .airplane-info {
+        font-weight: normal;
+        color: #333;
+    }
+    .airplane-info-label {
+        font-weight: bold;
     }
     </style>
 {% endblock %}
@@ -123,11 +133,22 @@
             <button type="submit" class="submit-btn">Create Airplane</button>
         </form>
     </div>
+    <h2 style="text-align: center;">{{ company }}'s Airplane Fleet</h2>
     <div class="airplane-list">
-        <h2>{{ company }}'s Airplane Fleet</h2>
         {% for airplane in airplanes %}
             <div class="airplane-item">
-                Airplane ID: {{ airplane.id }} - Model: {{ airplane.manufacturer }} {{ airplane.model_num }}
+                <div>
+                    <span class="airplane-info-label">Airplane ID:</span> <span class="airplane-info">{{ airplane.id }}</span>
+                </div>
+                <div>
+                    <span class="airplane-info-label">Model:</span> <span class="airplane-info">{{ airplane.manufacturer }} {{ airplane.model_num }}</span>
+                </div>
+                <div>
+                    <span class="airplane-info-label">Manufacturing Date:</span> <span class="airplane-info">{{ airplane.manufacturing_date }}</span>
+                </div>
+                <div>
+                    <span class="airplane-info-label">Age:</span> <span class="airplane-info">{{ airplane.age }} years</span>
+                </div>
             </div>
         {% endfor %}
     </div>

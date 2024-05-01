@@ -1,7 +1,7 @@
 # staffAccount.py
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 import pymysql.cursors
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Create a Blueprint for staff account management
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
@@ -17,12 +17,6 @@ conn = pymysql.connect(host='localhost',
 
 @staff_bp.route('/account', methods=['GET'])
 def dashboard():
-    if 'userType' in session and session['userType'] == 'Staff':
-        return render_template('staff_account.html')
-    return redirect(url_for('home'))
-
-@staff_bp.route('/upcoming-flights', methods=['GET'])
-def upcoming_flights():
     if 'userType' in session and session['userType'] == 'Staff':
         return render_template('staff_account.html')
     return redirect(url_for('home'))
@@ -44,9 +38,8 @@ def create_flight():
         status = request.form.get('status')
 
         try:
+            airline_name = get_airline_name_from_staff(session['user'])
             with conn.cursor() as cursor:
-                cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
-                airline_name = (cursor.fetchone())['airline_name']
                 if entity_exists(cursor, "Flight", "flight_number", flight_number):
                     flash('Flight Number already exists.', 'error')
                 elif not entity_exists(cursor, "Airline", "name", airline_name):
@@ -84,9 +77,7 @@ def create_airplane():
         return redirect(url_for('home'))
     airplanes = [] 
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
-            airline_name = (cursor.fetchone())['airline_name']
+            airline_name = get_airline_name_from_staff(session['user'])
             airplanes = find_airplanes(cursor, airline_name)
     except Exception as e:
             flash(f"Failed to load airplanes: {str(e)}", 'error')
@@ -201,11 +192,9 @@ def schedule_maintenance():
             start_date_time = validate_and_correct_date(request.form.get('start_date_time'))
             end_date_time = validate_and_correct_date(request.form.get('end_date_time'))
 
-            with conn.cursor() as cursor:
-                # Verify that the airline and airplane exist
-                cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
-                airline_name = (cursor.fetchone())['airline_name']
+            airline_name = get_airline_name_from_staff(session['user'])
 
+            with conn.cursor() as cursor:
                 cursor.execute("SELECT id FROM Airplane WHERE id = %s AND airline_name = %s", (airplane_id, airline_name))
                 airplane = cursor.fetchone()
                 if not airplane:
@@ -236,6 +225,82 @@ def schedule_maintenance():
 
 
     return redirect(url_for('home'))
+
+@staff_bp.route('/upcoming-flights', methods=['GET', 'POST'])
+def upcoming_flights():
+    if 'userType' not in session or session['userType'] != 'Staff':
+        flash("Unauthorized access.", "error")
+        return redirect(url_for('home'))
+
+    airline_name = get_airline_name_from_staff(session['user'])
+    flights=[]
+
+    if request.method == 'POST':
+        from_date = request.form.get('from_date')
+        to_date = request.form.get('to_date')
+        departure_airport = request.form.get('departure_airport')
+        arrival_airport = request.form.get('arrival_airport')
+        flights = query_flights(airline_name, from_date, to_date, departure_airport, arrival_airport)
+    else:
+        flights = query_flights(airline_name)
+    return render_template('upcoming_flights.html', flights=flights)
+
+def query_flights(airline_name, from_date=None, to_date=None, departure_airport=None, arrival_airport=None):
+    # Default date range for the next 30 days if no dates are specified
+    if not from_date:
+        from_date = datetime.now().strftime('%Y-%m-%d')
+    if not to_date:
+        to_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+
+    # Start building the query with the condition to exclude cancelled flights
+    query = """
+        SELECT * FROM Flight
+        WHERE airline_name = %s
+        AND departure_date_time BETWEEN %s AND %s
+        AND status != 'Cancelled'
+    """
+
+    # Prepare the parameters list for the query
+    params = [airline_name, from_date, to_date]
+
+    # Filter by departure and arrival airports if provided
+    if departure_airport:
+        query += " AND departure_airport = %s"
+        params.append(departure_airport)
+    if arrival_airport:
+        query += " AND arrival_airport = %s"
+        params.append(arrival_airport)
+    
+    # Execute the query
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(query, params)
+            flights = cursor.fetchall()
+            return flights
+    except Exception as e:
+        print("Failed to query flights:", e)
+        return []
+
+
+def get_airline_name_from_staff(username):
+    """
+    Retrieves the airline name for a staff member based on their username.
+
+    :param username: The username of the staff member.
+    :return: The airline name associated with the staff member or None if not found.
+    """
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (username,))
+            result = cursor.fetchone()
+            if result:
+                return result['airline_name']
+            else:
+                return None
+    except Exception as e:
+        print(f"Error retrieving airline name: {e}")
+        return None
+
 
 
 # helper functions

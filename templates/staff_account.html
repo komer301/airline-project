@@ -49,7 +49,7 @@
 {% endblock %}
 {% block content %}
     <div class="sidebar">
-        <a href="/staff/upcoming-flights">Upcoming Flights</a>
+        <a href="/staff/upcoming-flights" id="upcomingFlights">Upcoming Flights</a>
         <a href="/staff/create-flight" id="createFlight">Create New Flight</a>
         <a href="/staff/create-airplane" id="createAirplane">Add Airplane</a>
         <a href="/staff/create-airport" id="createAirport">Add Airport</a>
@@ -58,6 +58,7 @@
         <a href="/staff/schedule-maintenance" id="scheduleMaintenance">Schedule Maintenance</a>
         <a href="/staff/view-flights">View Frequent Customers</a>
         <a href="/staff/view-earnings">View Earnings</a>
+        <a href="/staff/view-earnings">Account Settings</a>
     </div>
     <div class="content">
         {% block display %}{% endblock %}
