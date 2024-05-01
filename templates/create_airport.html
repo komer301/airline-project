@@ -1,0 +1,110 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+            width: auto;
+        }
+        .airport-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+            width: 100%;
+            max-width: 400px;
+        }
+        input:focus, select:focus {
+            border-color: #0056b3;
+            box-shadow: 0 0 8px rgba(0,86,179,0.2);
+        }
+        .submit-btn {
+            grid-column: span 2;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .sidebar #createAirport {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>Create Airport</h2>
+        <form action="/staff/create-airport" method="post" class="airport-form">
+            <div class="form-group">
+                <label for="code">Airport Code:</label>
+                <input type="text"
+                       id="code"
+                       name="code"
+                       required
+                       placeholder="Enter Airport Code">
+            </div>
+            <div class="form-group">
+                <label for="name">Airport Name:</label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       required
+                       placeholder="Enter Airport Name">
+            </div>
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" required placeholder="Enter City">
+            </div>
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <input type="text"
+                       id="country"
+                       name="country"
+                       required
+                       placeholder="Enter Country">
+            </div>
+            <div class="form-group">
+                <label for="airport_type">Airport Type:</label>
+                <select id="airport_type" name="airport_type">
+                    <option value="International">International</option>
+                    <option value="Domestic">Domestic</option>
+                    <option value="Regional">Both</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="num_of_terminals">Number of Terminals:</label>
+                <input type="number"
+                       id="num_of_terminals"
+                       name="num_of_terminals"
+                       required
+                       placeholder="Enter Number of Terminals">
+            </div>
+            <button type="submit" class="submit-btn">Create Airport</button>
+        </form>
+    </div>
+{% endblock %}

@@ -80,14 +80,6 @@
         padding: 5px 10px;
     }
 
-    /* Styles for flash messages */
-    .flash-messages {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        width: 300px;
-    }
 
     .user-menu ul {
     list-style-type: none; /* Removes bullet points */
@@ -113,20 +105,7 @@
 .user-menu li:hover {
     background-color: #555; /* Slightly lighter gray on hover */
 }
-    .alert {
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 5px;
-        text-align: center;
-        color: white;
-        opacity: 1;
-        transition: opacity 0.5s linear;
-    }
-
-    .alert-error { background-color: #f44336; }
-    .alert-success { background-color: #4CAF50; }
-    .alert-info { background-color: #2196F3; }
-    .alert-warning { background-color: #ff9800; }
+    
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -141,8 +120,7 @@
             });
         });
     </script>
-    {% block style2 %}
-    {% endblock %}
+    {% block style2 %}{% endblock %}
 {% endblock %}
 {% block content %}
     {% with messages = get_flashed_messages(with_categories=true) %}

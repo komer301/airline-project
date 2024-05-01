@@ -40,7 +40,46 @@
         background-color: #ddd;
         color: black;
     }
+            /* Styles for flash messages */
+            .flash-messages {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 300px;
+    }
+
+
+    .alert {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        text-align: center;
+        color: white;
+        opacity: 1;
+        transition: opacity 0.5s linear;
+    }
+
+    .alert-error { background-color: #f44336; }
+    .alert-success { background-color: #4CAF50; }
+    .alert-info { background-color: #2196F3; }
+    .alert-warning { background-color: #ff9800; }
         </style>
+        <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const tripTypeRadios = document.querySelectorAll('input[name="trip_type"]');
+                    const returnDateDiv = document.querySelector('.return-date');
+                    tripTypeRadios.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            if (this.value === 'round-trip') {
+                                returnDateDiv.style.display = 'block';
+                            } else {
+                                returnDateDiv.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+        </script>
     </head>
     <body>
         <nav class="navbar">
@@ -58,6 +97,13 @@
             {% endif %}
         </nav>
         <div class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
             {% block content %}{% endblock %}
         </div>
     </body>

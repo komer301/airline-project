@@ -32,10 +32,9 @@
 
     .content {
         margin-left: 270px; /* Offset to accommodate sidebar width */
-        padding: 40px; /* Generous padding for layout */
+        padding-right: 40px; /* Generous padding for layout */
         overflow-y: auto; /* Allows vertical scrolling within content area if needed */
         height: calc(100vh - 60px); /* Full viewport height minus the height of the top navbar */
-        top: 60px; /* Align the top of the content area with the bottom of the navbar */
         position: relative;
     }
     .display-box {
@@ -46,13 +45,18 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Soft shadow for depth */
     }
     </style>
+    {% block style2 %}{% endblock %}
 {% endblock %}
 {% block content %}
     <div class="sidebar">
         <a href="/staff/upcoming-flights">Upcoming Flights</a>
-        <a href="/staff/create-flight">Create New Flight</a>
-        <a href="/staff/view-flights">View Flights</a>
-        <a href="/staff/view-customers">View Customers</a>
+        <a href="/staff/create-flight" id="createFlight">Create New Flight</a>
+        <a href="/staff/create-airplane" id="createAirplane">Add Airplane</a>
+        <a href="/staff/create-airport" id="createAirport">Add Airport</a>
+        <a href="/staff/change-flight-status" id="changeFlightStatus">Change Flight Status</a>
+        <a href="/staff/view-flights">View Ratings</a>
+        <a href="/staff/view-flights">Schedule Maintenance</a>
+        <a href="/staff/view-flights">View Frequent Customers</a>
         <a href="/staff/view-earnings">View Earnings</a>
     </div>
     <div class="content">

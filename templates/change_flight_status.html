@@ -1,0 +1,87 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+    <style>
+    .display {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin: 20px;
+        width: auto;
+    }
+    .status-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+        align-items: center; /* Aligns items vertically centered */
+
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    label {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    input[type="text"], input[type="datetime-local"], input[type="number"], select {
+        padding: 12px;
+        border: 2px solid #ccc;
+        border-radius: 6px;
+        width: 100%;
+        max-width: 400px;
+        transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, input[type="datetime-local"]:focus, select:focus {
+        border-color: #0056b3;
+        box-shadow: 0 0 8px rgba(0,86,179,0.2);
+    }
+    .submit-btn {
+        grid-column: span 2; /* Make the submit button span across both columns */
+
+        background-color: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+    .submit-btn:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+    .sidebar #changeFlightStatus {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>Change Flight Status</h2>
+        <form action="/staff/change-flight-status"
+              method="post"
+              class="status-form">
+            <div class="form-group">
+                <label for="flight_number">Flight Number:</label>
+                <input type="number"
+                       id="flight_number"
+                       name="flight_number"
+                       required
+                       placeholder="Enter Flight Number">
+            </div>
+            <div class="form-group">
+                <label for="status">New Status:</label>
+                <select id="status" name="status" required>
+                    <option value="On Time">On Time</option>
+                    <option value="Delayed">Delayed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <input type="submit" value="Update Status" class="submit-btn">
+        </form>
+    </div>
+{% endblock %}
