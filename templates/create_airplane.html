@@ -55,6 +55,18 @@
         background-color: #eaeaea;
         color: #000;
     }
+    .airplane-item {
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .airplane-form, .airplane-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
     </style>
 {% endblock %}
 {% block display %}
@@ -110,5 +122,13 @@
             </div>
             <button type="submit" class="submit-btn">Create Airplane</button>
         </form>
+    </div>
+    <div class="airplane-list">
+        <h2>{{ company }}'s Airplane Fleet</h2>
+        {% for airplane in airplanes %}
+            <div class="airplane-item">
+                Airplane ID: {{ airplane.id }} - Model: {{ airplane.manufacturer }} {{ airplane.model_num }}
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}

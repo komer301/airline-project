@@ -107,10 +107,4 @@
             <button type="submit" class="submit-btn">Create Airport</button>
         </form>
     </div>
-    <div class="airplane-list">
-        <h2>Company's Airplane Fleet</h2>
-        {% for airplane in airplanes %}
-            <div class="airplane-item">Airplane ID: {{ airplane.id }} - Model: {{ airplane.model }}</div>
-        {% endfor %}
-    </div>
 {% endblock %}

@@ -82,8 +82,14 @@ def create_flight():
 def create_airplane():
     if 'userType' not in session or session['userType'] != 'Staff':
         return redirect(url_for('home'))
-    cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
-    airline_name = (cursor.fetchone())['airline_name']
+    airplanes = [] 
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
+            airline_name = (cursor.fetchone())['airline_name']
+            airplanes = find_airplanes(cursor, airline_name)
+    except Exception as e:
+            flash(f"Failed to load airplanes: {str(e)}", 'error')
     if request.method == 'POST':
         # Extract form data
         airplane_id = request.form.get('airplane_id')
@@ -100,9 +106,7 @@ def create_airplane():
                 if entity_exists(cursor, "Airplane", "id", airplane_id):
                     flash('Airplane ID already exists.', 'error')
                     return redirect(url_for('staff.create_airplane'))
-                cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (session['user']))
-                airline_name = (cursor.fetchone())['airline_name']
-                print(airline_name)
+                
                 # Insert new airplane
                 sql = """
                     INSERT INTO Airplane (airline_name, id, num_seats, manufacturer, model_num, manufacturing_date, age)
@@ -115,7 +119,7 @@ def create_airplane():
             flash(str(e), 'error')
         return redirect(url_for('staff.create_airplane'))
 
-    return render_template('create_airplane.html', airplanes=find_airplanes(airline_name))
+    return render_template('create_airplane.html', company=airline_name, airplanes=airplanes)
 
 @staff_bp.route('/create-airport', methods=['GET', 'POST'])
 def create_airport():
@@ -285,4 +289,5 @@ def validate_and_correct_date(date_time_str):
 def find_airplanes(cursor, company):
     sql = "SELECT * FROM Airplane WHERE airline_name = %s"
     cursor.execute(sql, (company))
+    return cursor.fetchall()
     # return a list of the airplanes

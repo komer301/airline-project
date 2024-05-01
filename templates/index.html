@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block style %}
     <style>
-
     /* General Styles */
     .radio-buttons {
     display: flex;
@@ -148,19 +147,4 @@
             </form>
         </div>
     </div>
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tripTypeRadios = document.querySelectorAll('input[name="trip_type"]');
-    const returnDateDiv = document.querySelector('.return-date');
-    tripTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'round-trip') {
-                returnDateDiv.style.display = 'block';
-            } else {
-                returnDateDiv.style.display = 'none';
-            }
-        });
-    });
-});
-    </script>
 {% endblock %}
