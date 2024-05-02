@@ -1,0 +1,106 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+<style>
+    .spending-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .yearly-spending {
+        flex: 1;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .monthly-spending {
+        flex: 1;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .date-range-form {
+        margin-top: 20px;
+    }
+
+    .date-range-form input {
+        margin-right: 10px;
+    }
+
+    .chart-container {
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+{% block display %}
+    <div class="spending-container">
+        <div class="yearly-spending">
+            <h2>Yearly Spending</h2>
+            <p>Total amount spent in the past year: 
+                {% if yearly_spending %}
+                    ${{ yearly_spending[0]['total_spent_past_year'] }}
+                {% else %}
+                    $0
+                {% endif %}
+            </p>
+        </div>
+        <div class="monthly-spending">
+            <h2>Monthly Spending (Last 6 Months)</h2>
+            <div class="chart-container">
+                <canvas id="monthly-spending-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="date-range-form">
+        <h2>Custom Date Range</h2>
+        <form action="{{ url_for('user.my_spending') }}" method="post">
+            <label for="from_date">From:</label>
+            <input type="date" id="from_date" name="from_date">
+            <label for="to_date">To:</label>
+            <input type="date" id="to_date" name="to_date">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Monthly spending data
+        const monthlyLabels = [
+            {% for month in monthly_spending %}
+                "{{ month['year'] }}-{{ month['month'] }}",
+            {% endfor %}
+        ];
+        const monthlyData = [
+            {% for month in monthly_spending %}
+                {{ month['total_spent'] }},
+            {% endfor %}
+        ];
+
+        // Create bar chart
+        const ctx = document.getElementById('monthly-spending-chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Monthly Spending',
+                    data: monthlyData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
