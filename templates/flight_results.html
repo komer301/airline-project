@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block style %}
+    <style>
+        .flight-results {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 800px; /* Adjust as needed */
+        }
+        .flight-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ffffff;
+        }
+        .flight-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .flight-title {
+            font-weight: bold;
+            color: #0056b3;
+            font-size: 18px;
+        }
+        .flight-details {
+            font-size: 14px;
+            color: #555;
+        }
+        .flight-price {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+        }
+        .select-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .select-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="flight-results">
+        {% if round_trip %}
+            <h2>Select Return Flight</h2>
+        {% else %}
+            <h2>Select Flight</h2>
+        {% endif %}
+        <form action="{% if goPurchase %}{{ url_for("purchase") }}{% else %}{{ url_for("select_return") }}{% endif %}"
+              method="post">
+            {% for flight in flights %}
+                <div class="flight-item">
+                    <div class="flight-info">
+                        <span class="flight-title">Flight {{ flight.flight_number }}: {{ flight.departure_airport }} ➜ {{ flight.arrival_airport }}</span>
+                        <span class="flight-details">Departure: {{ flight.departure_date_time }} | Arrival: {{ flight.arrival_date_time }}</span>
+                        <span class="flight-details">Status: {{ flight.status }}</span>
+                        <span class="flight-price">Price: {{ flight.base_price }} USD</span>
+                    </div>
+                    <button type="submit"
+                            name="selected_flight"
+                            value="{{ flight.airline_name }}-{{ flight.flight_number }}"
+                            class="select-btn">
+                        {% if goPurchase %}
+                            {{ 'Purchase' }}
+                        {% else %}
+                            {{ 'Select' }}
+                        {% endif %}
+                    </button>
+                </div>
+            {% endfor %}
+        </form>
+    </div>
+{% endblock %}

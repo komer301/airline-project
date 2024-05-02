@@ -5,6 +5,7 @@ from staffAccount import staff_bp  # Import the Blueprint
 from userAccount import user_bp
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 load_dotenv()
@@ -25,7 +26,6 @@ conn = pymysql.connect(host='localhost',
 @app.route("/")
 def home():
     return render_template("index.html")
-
 
 @app.route('/signup', methods=['GET','POST'])
 def process_signup():
@@ -223,6 +223,232 @@ def process_staff_signup():
         flash("Signup successful", 'info')
         return redirect(url_for('home'))
     return render_template('staff_signup.html', airlines=airlines)
+
+@app.route('/status', methods=['POST'])
+def check_status():
+    airline = request.form.get('airline')
+    flight_number = request.form.get('flight_number')
+    departure_date = request.form.get('date')
+
+    if not airline or not flight_number or not departure_date:
+        flash('Please fill in all fields', 'error')
+        return redirect(url_for('home'))
+    
+    with conn.cursor() as cursor:
+        sql = """
+            SELECT * FROM Flight 
+            WHERE airline_name = %s 
+            AND flight_number = %s 
+            AND DATE(departure_date_time) = %s
+        """
+        cursor.execute(sql, (airline, flight_number, departure_date))
+        flight = cursor.fetchone()
+
+        if not flight:
+            flash("Flight not found or no status available.", 'error')
+            return redirect(url_for('home'))
+        
+        departure_dt = flight['departure_date_time']
+        arrival_dt = flight['arrival_date_time']
+        
+        flight['departure_time'] = departure_dt.strftime("%I:%M %p")
+        flight['arrival_time'] = arrival_dt.strftime("%I:%M %p")
+        
+    return render_template('flight_status.html', flight=flight)
+
+@app.route('/search', methods=['POST'])
+def search_flights():
+    trip_type = request.form['trip_type']
+    departure_airport = request.form['departure_airport']
+    arrival_airport = request.form['arrival_airport']
+    departure_date = request.form['departure_date_time']
+    return_date = request.form.get('return_date_time')
+
+    session['departure_airport'] = departure_airport
+    session['arrival_airport'] = arrival_airport
+    session['trip_type'] = trip_type
+
+    with conn.cursor() as cursor:
+        sql = """
+            SELECT * FROM Flight 
+            WHERE departure_airport = %s 
+            AND arrival_airport = %s 
+            AND DATE(departure_date_time) = %s
+            AND status != 'Cancelled'
+        """
+        cursor.execute(sql, (departure_airport, arrival_airport, departure_date))
+        departure_flights = cursor.fetchall()
+
+    if not departure_flights:
+        flash('Sorry, no available flights!','warning')
+        return(redirect(url_for('home')))
+    
+    if trip_type == 'one-way':
+        return render_template('flight_results.html', flights=departure_flights,round_trip=False,goPurchase=True)
+    else:
+        session['return_date'] = return_date
+        return render_template('flight_results.html', flights=departure_flights, round_trip=False, goPurchase=False)
+
+
+@app.route('/select_return', methods=['POST'])
+def select_return():
+    selected_flight_key = request.form['selected_flight']
+    airline_name, flight_number = selected_flight_key.split('-')
+    return_date = session.get('return_date')
+
+    # try:
+    #     return_date_parsed = datetime.strptime(session['return_date'], '%Y-%m-%d')
+    # except (ValueError, TypeError):
+    #     flash('Invalid return date format', 'error')
+    #     return redirect(url_for('home'))
+    with conn.cursor() as cursor:
+        sql = """
+            SELECT * FROM Flight 
+            WHERE airline_name = %s 
+            AND flight_number = %s 
+        """
+        cursor.execute(sql, (airline_name, flight_number))
+        selected_flight = cursor.fetchone()
+        print("Selected flight",selected_flight)
+    
+    session['selected_departure_flight'] = selected_flight
+
+    with conn.cursor() as cursor:
+        sql = """
+            SELECT * FROM Flight 
+            WHERE departure_airport = %s 
+            AND arrival_airport = %s 
+            AND DATE(departure_date_time) >= %s
+        """
+        cursor.execute(sql, (selected_flight['arrival_airport'], selected_flight['departure_airport'], session['return_date']))
+        return_flights = cursor.fetchall()
+    if not return_flights:
+        flash('Sorry, no available flights!','warning')
+        return redirect(url_for('home'))
+
+    return render_template('flight_results.html', flights=return_flights, round_trip=True, goPurchase=True)
+
+
+
+@app.route('/purchase', methods=['GET', 'POST'])
+def purchase():
+    if request.method == 'POST':
+        if 'userType' not in session or session['userType'] != 'Customer':
+            flash('You must be signed in as a Customer to purchase a ticket','error')
+            return redirect(url_for('home'))
+        if session.get('trip_type') == 'one-way':
+            selected_flight_key = request.form['selected_flight']
+            airline_name, flight_number = selected_flight_key.split('-')
+            
+            with conn.cursor() as cursor:
+                sql = """
+                    SELECT * FROM Flight 
+                    WHERE airline_name = %s 
+                    AND flight_number = %s
+                """
+                cursor.execute(sql, (airline_name, flight_number))
+                selected_flight = cursor.fetchone()
+            
+            flights = [selected_flight]
+            price = float(selected_flight['base_price'])
+        else:
+            selected_return_flight_key = request.form['selected_flight']
+            airline_name, flight_number = selected_return_flight_key.split('-')
+            
+            with conn.cursor() as cursor:
+                sql = """
+                    SELECT * FROM Flight 
+                    WHERE airline_name = %s 
+                    AND flight_number = %s
+                """
+                cursor.execute(sql, (airline_name, flight_number))
+                selected_return_flight = cursor.fetchone()
+            
+            flights = [session['selected_departure_flight'], selected_return_flight]
+            departure_cost = float(session['selected_departure_flight']['base_price'])
+            return_cost = float(selected_return_flight['base_price'])
+            price = departure_cost + return_cost
+            session['flights'] = flights
+        return render_template('purchase.html', price=price, flights=flights)
+    
+    # Processing payment
+@app.route('/complete-purchase',methods=['POST'])
+def complete_purchase():
+    customer_email = request.form['customer_email']
+    payment_info = {
+        'card_type': request.form['card_type'],
+        'card_number': request.form['card_number'],
+        'name_on_card': request.form['name_on_card'],
+        'expiration_date': request.form['expiration_date'],
+        'purchase_date_time': datetime.now()
+    }
+    flights = session.get('flights', [])
+    
+    for flight in flights:
+        process_payment(customer_email, flight, payment_info)
+    
+    flash('Purchase successful', 'success')
+    return redirect(url_for('home'))
+
+
+def process_payment(customer_email, flight, payment_info):
+    with conn.cursor() as cursor:
+        try:
+            print("First check point")
+            year, month = payment_info['expiration_date'].split('-')
+            expiration_date = datetime(int(year), int(month), 1).date()
+            ticket_sql = """
+                INSERT INTO Ticket (customer_email, flight_number, sold_price, payment_info_card_type, payment_info_card_number, payment_info_name_on_card, payment_info_expiration_date, purchase_date_time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(
+                ticket_sql,
+                (
+                    customer_email,
+                    flight['flight_number'],
+                    flight['base_price'],
+                    payment_info['card_type'],
+                    payment_info['card_number'],
+                    payment_info['name_on_card'],
+                    expiration_date,
+                    payment_info['purchase_date_time']
+                )
+            )
+            print("Second check point")
+            print(customer_email,flight,payment_info)
+            
+            ticket_id = cursor.lastrowid
+            print("ticketID",ticket_id)
+            
+            purchase_sql = """
+                INSERT INTO Purchase (ticket_id, customer_email, sold_price, purchase_date_time, card_type, card_number, expiration_date, name_on_card)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(
+                purchase_sql,
+                (
+                    ticket_id,
+                    customer_email,
+                    flight['base_price'],
+                    payment_info['purchase_date_time'],
+                    payment_info['card_type'],
+                    payment_info['card_number'],
+                    expiration_date,
+                    payment_info['name_on_card']
+                )
+            )
+            conn.commit()
+            flash('Payment successful and ticket purchased', 'success')
+
+        except Exception as e:
+            conn.rollback()
+            print(f'Error processing payment: {str(e)}')  # More detailed logging
+            flash(f'Error processing payment: {str(e)}', 'error')
+
+
+
+def calculate_price(flight):
+    return flight['base_price']
 
 @app.route('/logout')
 def logout():

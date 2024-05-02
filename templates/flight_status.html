@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block style %}
+    <style>
+        .flight-status {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
+        .flight-info {
+            margin: 10px 0;
+            display: flex; /* Enable flexbox for proper alignment */
+            justify-content: space-between; /* Distribute label and value */
+        }
+        .info-label {
+            font-weight: bold;
+            margin-right: 10px; /* Space between label and value */
+            flex-basis: 40%; /* Set flex basis to 40% */
+        }
+        .info-value {
+            flex-basis: 60%; /* Set flex basis to 60% */
+            text-align: right; /* Align values to the right */
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="flight-status">
+        <h2>Flight Status</h2>
+        <div class="flight-info">
+            <span class="info-label">Airline:</span><span class="info-value">{{ flight.airline_name }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Flight Number:</span><span class="info-value">{{ flight.flight_number }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Status:</span><span class="info-value">{{ flight.status }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Departure Airport:</span><span class="info-value">{{ flight.departure_airport }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Arrival Airport:</span><span class="info-value">{{ flight.arrival_airport }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Departure Time:</span><span class="info-value">{{ flight.departure_time }}</span>
+        </div>
+        <div class="flight-info">
+            <span class="info-label">Arrival Time:</span><span class="info-value">{{ flight.arrival_time }}</span>
+        </div>
+    </div>
+{% endblock %}

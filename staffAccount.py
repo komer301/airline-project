@@ -2,6 +2,8 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 import pymysql.cursors
 from datetime import datetime, timedelta
+import phonenumbers
+
 
 # Create a Blueprint for staff account management
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
@@ -78,7 +80,7 @@ def create_airplane():
     airplanes = [] 
     try:
             airline_name = get_airline_name_from_staff(session['user'])
-            airplanes = find_airplanes(cursor, airline_name)
+            airplanes = find_airplanes(airline_name)
     except Exception as e:
             flash(f"Failed to load airplanes: {str(e)}", 'error')
     if request.method == 'POST':
@@ -245,6 +247,135 @@ def upcoming_flights():
         flights = query_flights(airline_name)
     return render_template('upcoming_flights.html', flights=flights)
 
+
+@staff_bp.route('/account-settings', methods=['GET', 'POST'])
+def staff_settings():
+    if 'userType' not in session or session['userType'] != 'Staff':
+        flash("You need to log in as a staff member to access staff settings", "error")
+        return redirect(url_for('login'))
+
+    username = session['user']
+    with conn.cursor() as cursor:
+        sql = "SELECT first_name FROM AirlineStaff WHERE username = %s"
+        cursor.execute(sql,username)
+        first_name = (cursor.fetchone())['first_name']
+
+    if request.method == 'POST':
+        new_email = request.form.get('new_email')
+        new_phone_number = request.form.get('new_phone_number')
+
+        try:
+            if new_email:
+                with conn.cursor() as cursor:
+                    sql = "INSERT INTO StaffEmail (username, email) VALUES (%s, %s)"
+                    cursor.execute(sql, (username, new_email))
+                    conn.commit()
+                flash("Email added successfully", "success")
+
+            if new_phone_number:
+                try:
+                    # Check if phone number already exists for this user
+                    with conn.cursor() as cursor:
+                        cursor.execute("SELECT * FROM StaffPhone WHERE username = %s AND phone_number = %s", (username, new_phone_number))
+                        existing_phone = cursor.fetchone()
+                        if existing_phone:
+                            flash("Phone number already exists.", "error")
+                        elif len(new_phone_number) != 10:
+                            flash("Phone number format incorrect", "error")
+                        else:
+                            # Add phone number to database
+                            add_phone_number_to_db(username,new_phone_number)
+                            flash("Phone number added successfully", "success")
+                except Exception as e:
+                    flash(str(e), "error")
+
+        except Exception as e:
+            flash(str(e), 'error')
+        
+        return redirect(url_for('staff.staff_settings'))
+
+    emails = get_user_emails(username)
+    phone_numbers = get_user_phone_numbers(username)
+
+    return render_template(
+        'staff_account_settings.html',
+        emails=emails,
+        phone_numbers=phone_numbers, staff_first_name=first_name
+    )
+
+@staff_bp.route('/delete_phone_number/<phone_number>', methods=['POST'])
+def delete_phone_number(phone_number):
+    if 'userType' in session and session['userType'] == 'Staff':
+        try:
+            with conn.cursor() as cursor:
+                # Assuming you have a table 'PhoneNumbers' with a column 'number' and 'email'
+                sql = "DELETE FROM StaffPhone WHERE phone_number = %s AND username = %s"
+                cursor.execute(sql, (unformat_phone_number(phone_number), session['user']))
+                conn.commit()
+            flash('Phone number removed successfully', 'success')
+        except Exception as e:
+            flash(str(e), 'error')
+    else:
+        flash('You are not authorized to perform this action.', 'error')
+    return redirect(url_for('staff.staff_settings'))
+
+@staff_bp.route('/delete_email/<email>', methods=['POST'])
+def delete_email(email):
+    if 'userType' in session and session['userType'] == 'Staff':
+        try:
+            with conn.cursor() as cursor:
+                sql = "DELETE FROM StaffEmail WHERE email = %s AND username = %s"
+                cursor.execute(sql, (email, session['user']))
+                conn.commit()
+            flash('Email removed successfully', 'success')
+        except Exception as e:
+            flash(str(e), 'error')
+    else:
+        flash('You are not authorized to perform this action.', 'error')
+    return redirect(url_for('staff.staff_settings'))
+
+def get_user_phone_numbers(username):
+    with conn.cursor() as cursor:
+        sql = "SELECT phone_number FROM StaffPhone WHERE username = %s"
+        cursor.execute(sql, (username))
+        # Fetch all results
+        results = cursor.fetchall()
+        # Extract phone numbers from the query results
+        phone_numbers = [format_phone_number(result['phone_number']) for result in results]
+        return phone_numbers
+    
+def get_user_emails(username):
+    with conn.cursor() as cursor:
+        sql = "SELECT email FROM StaffEmail WHERE username = %s"
+        cursor.execute(sql, (username))
+        # Fetch all results
+        results = cursor.fetchall()
+        # Extract phone numbers from the query results
+        phone_numbers = [format_phone_number(result['email']) for result in results]
+        return phone_numbers
+    
+def add_phone_number_to_db(username, phone_number):
+    with conn.cursor() as cursor:
+        sql = "INSERT INTO StaffPhone (username, phone_number) VALUES (%s, %s)"
+        cursor.execute(sql, (username, phone_number))
+        conn.commit()
+
+def format_phone_number(raw_number):
+    try:
+        phone_number = phonenumbers.parse(raw_number, "US")  # Assume 'US' as the region; adjust as necessary
+        return phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+    except phonenumbers.phonenumberutil.NumberParseException:
+        return raw_number  # Return the raw number if parsing fails
+
+def unformat_phone_number(formatted_number):
+    try:
+        phone_number = phonenumbers.parse(formatted_number, None)
+        # Extracts the national number part of the phone number, which omits country code and formatting
+        return str(phone_number.national_number)
+    except phonenumbers.phonenumberutil.NumberParseException:
+        return None  # Return None or handle the error as needed if the number can't be parsed
+
+
 def query_flights(airline_name, from_date=None, to_date=None, departure_airport=None, arrival_airport=None):
     # Default date range for the next 30 days if no dates are specified
     if not from_date:
@@ -283,12 +414,6 @@ def query_flights(airline_name, from_date=None, to_date=None, departure_airport=
 
 
 def get_airline_name_from_staff(username):
-    """
-    Retrieves the airline name for a staff member based on their username.
-
-    :param username: The username of the staff member.
-    :return: The airline name associated with the staff member or None if not found.
-    """
     try:
         with conn.cursor() as cursor:
             cursor.execute("SELECT airline_name FROM AirlineStaff WHERE username = %s", (username,))
@@ -351,8 +476,9 @@ def validate_and_correct_date(date_time_str):
         flash(f"Invalid date format or value: {e}", 'error')
         return None
     
-def find_airplanes(cursor, company):
-    sql = "SELECT * FROM Airplane WHERE airline_name = %s"
-    cursor.execute(sql, (company))
-    return cursor.fetchall()
+def find_airplanes(company):
+    with conn.cursor() as cursor:
+        sql = "SELECT * FROM Airplane WHERE airline_name = %s"
+        cursor.execute(sql, (company))
+        return cursor.fetchall()
     # return a list of the airplanes

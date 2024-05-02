@@ -106,15 +106,6 @@ def delete_phone_number(phone_number):
         flash('You are not authorized to perform this action.', 'error')
     return redirect(url_for('user.dashboard'))
 
-
-@user_bp.route('/profile')
-def profile():
-    if 'userType' in session and session['userType'] == 'Customer':
-        # Assume getting staff user details logic here
-        return render_template('signup.html')
-    return redirect(url_for('home'))
-
-
 def format_phone_number(raw_number):
     try:
         phone_number = phonenumbers.parse(raw_number, "US")  # Assume 'US' as the region; adjust as necessary

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block style %}
+    <style>
+        .flight-purchase {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+        }
+        .flight-list {
+            margin-bottom: 20px;
+        }
+        .flight-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+        }
+        .flight-title {
+            font-weight: bold;
+            color: #0056b3;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .flight-details {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .flight-price {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .total-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0056b3;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .purchase-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="flight-purchase">
+        <h2>Flight Purchase</h2>
+        <div class="flight-list">
+            {% for flight in flights %}
+                <div class="flight-item">
+                    <div class="flight-title">Flight: {{ flight.flight_number }} ({{ flight.airline_name }})</div>
+                    <div class="flight-details">From {{ flight.departure_airport }} to {{ flight.arrival_airport }}</div>
+                    <div class="flight-details">Departure: {{ flight.departure_date_time }}</div>
+                    <div class="flight-details">Arrival: {{ flight.arrival_date_time }}</div>
+                    <div class="flight-price">Price: ${{ flight.base_price }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="total-price">Total Price: ${{ price }}</div>
+        <form action="{{ url_for("complete_purchase") }}"
+              method="POST"
+              class="purchase-form">
+            <input type="email"
+                   name="customer_email"
+                   value="{{ session['userEmail'] }}"
+                   readonly>
+            <select name="card_type" required>
+                <option value="" disabled selected>Card Type</option>
+                <option value="Visa">Visa</option>
+                <option value="MasterCard">MasterCard</option>
+                <option value="Amex">Amex</option>
+            </select>
+            <input type="text" name="card_number" placeholder="Card Number" required>
+            <input type="text" name="name_on_card" placeholder="Name on Card" required>
+            <input type="month" name="expiration_date" required>
+            <button type="submit">Complete Purchase</button>
+        </form>
+    </div>
+{% endblock %}
