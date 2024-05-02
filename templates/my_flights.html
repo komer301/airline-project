@@ -1,0 +1,191 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+            width: auto;
+        }
+        .airport-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        input[type="text"], input[type="number"], select {
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+            width: 100%;
+            max-width: 400px;
+        }
+        input:focus, select:focus {
+            border-color: #0056b3;
+            box-shadow: 0 0 8px rgba(0,86,179,0.2);
+        }
+        .submit-btn {
+            grid-column: span 2;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .sidebar #upcomingFlights {
+            background-color: #eaeaea;
+            color: #000;
+        }
+        .flight-item {
+    padding: 20px;
+    border: 2px solid #0056b3;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    background-color: #f0f8ff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.ticket-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #0056b3;
+}
+
+.ticket-status {
+    background-color: #ffcc00;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.ticket-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.info-block {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #0056b3;
+}
+
+.info-value {
+    font-weight: normal;
+    color: #333;
+}
+
+.view-customers-btn {
+    display: inline-block;
+    background-color: #0056b3;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.view-customers-btn:hover {
+    background-color: #003d7a;
+}
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>View Upcoming Flights</h2>
+        <form action="/staff/upcoming_flights" method="post" class="flight-form">
+            <div class="form-group">
+                <label for="departure_date">From Date:</label>
+                <input type="date" id="from_date" name="from_date" required>
+            </div>
+            <div class="form-group">
+                <label for="to_date">To Date:</label>
+                <input type="date" id="to_date" name="to_date" required>
+            </div>
+            <div class="form-group">
+                <label for="departure_airport">Departure Airport:</label>
+                <input type="text"
+                       id="departure_airport"
+                       name="departure_airport"
+                       placeholder="Enter Departure Airport Code">
+            </div>
+            <div class="form-group">
+                <label for="arrival_airport">Arrival Airport:</label>
+                <input type="text"
+                       id="arrival_airport"
+                       name="arrival_airport"
+                       placeholder="Enter Arrival Airport Code">
+            </div>
+            <button type="submit" class="submit-btn">Search Flights</button>
+        </form>
+    </div>
+    <h3 style="text-align: center;">Flight Results</h3>
+    <div class="flight-list">
+        {% if flights %}
+            <div class="flight-results">
+                {% for f in flights %}
+                    <div class="flight-item">
+                        <div class="ticket-header">
+                            <span class="ticket-title">Flight: {{ f.flight_number }}</span>
+                            <span class="ticket-status">{{ f.status }}</span>
+                        </div>
+                        <div class="ticket-info">
+                            <div class="info-block">
+                                <span class="info-label">Departure:</span>
+                                <span class="info-value">{{ f.departure_airport }} - {{ f.departure_date_time }}</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Arrival:</span>
+                                <span class="info-value">{{ f.arrival_airport }} - {{ f.arrival_date_time }}</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Airplane ID:</span>
+                                <span class="info-value">{{ f.airplane_id }}</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Price:</span>
+                                <span class="info-value">${{ f.base_price }}</span>
+                            </div>
+                        </div>
+                        <a class="view-customers-btn">View Customers</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No Flights Booked.</p>
+        {% endif %}
+    </div>
+{% endblock %}
