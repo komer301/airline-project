@@ -1,0 +1,122 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            width: auto;
+        }
+        .user-settings {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .settings-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            padding: 10px;
+            max-width: 460px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .account-info h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .phone-number-list {
+            list-style: none;
+            padding: 0;
+        }
+        .phone-number-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #eaeaea;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .delete-btn {
+            background-color: transparent;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .welcome {
+            flex-basis: 100%;
+            color: #333;
+            padding: 5px;
+            font-size: x-large;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .sidebar #accountSettings {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <section class="welcome">
+        <h1>Hello {{ user_first_name }}!</h1>
+    </section>
+    <div class="display">
+        <h2>User Settings</h2>
+        <form action="{{ url_for("user.user_settings") }}"
+              method="post"
+              class="settings-form">
+            <div class="form-group">
+                <label for="new_phone_number">Add New Phone Number:</label>
+                <input type="text" id="new_phone_number" name="new_phone_number">
+            </div>
+            <button type="submit" class="submit-btn">Update Settings</button>
+        </form>
+    </div>
+    <div class="display">
+        <section class="account-info">
+            <h2>Your Phone Numbers</h2>
+            <ul class="phone-number-list">
+                {% for number in phone_numbers %}
+                    <li class="phone-number-item">
+                        {{ number }}
+                        <form action="{{ url_for('user.delete_phone_number', phone_number=number) }}"
+                              method="post">
+                            <button type="submit" class="delete-btn">X</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+{% endblock %}

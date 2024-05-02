@@ -82,7 +82,7 @@
                     <div class="flight-details">From {{ flight.departure_airport }} to {{ flight.arrival_airport }}</div>
                     <div class="flight-details">Departure: {{ flight.departure_date_time }}</div>
                     <div class="flight-details">Arrival: {{ flight.arrival_date_time }}</div>
-                    <div class="flight-price">Price: ${{ flight.base_price }}</div>
+                    <div class="flight-price">Price: ${{ flight.price }}</div>
                 </div>
             {% endfor %}
         </div>
@@ -90,6 +90,9 @@
         <form action="{{ url_for("complete_purchase") }}"
               method="POST"
               class="purchase-form">
+            <input type="text" name="first_name" placeholder="First Name" required>
+            <input type="text" name="last_name" placeholder="Last Name" required>
+            <input type="date" name="dob" placeholder="Date of Birth" required>
             <input type="email"
                    name="customer_email"
                    value="{{ session['userEmail'] }}"

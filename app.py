@@ -6,6 +6,7 @@ from userAccount import user_bp
 from dotenv import load_dotenv
 import os
 from datetime import datetime
+import re
 
 app = Flask(__name__)
 load_dotenv()
@@ -56,6 +57,9 @@ def process_signup():
         state = request.form.get('state')
         city = request.form.get('city')
         zipcode = request.form.get('zip_code')
+        passport_number = request.form.get('passport_number')
+        passport_expiration = request.form.get('passport_expiration')
+        passport_country = request.form.get('passport_country')
 
         hashed_password = generate_password_hash(password)
         with conn.cursor() as cursor:
@@ -71,8 +75,11 @@ def process_signup():
                     address_apartment_number, 
                     address_city, 
                     address_state, 
-                    address_zip_code
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    address_zip_code,
+                    passport_number,
+                    passport_expiration,
+                    passport_country
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(sql, (
                 email, 
@@ -85,7 +92,10 @@ def process_signup():
                 aptnumber, 
                 city, 
                 state, 
-                zipcode
+                zipcode,
+                passport_number,
+                passport_expiration,
+                passport_country
             ))
             conn.commit()
         with conn.cursor() as cursor:
@@ -259,32 +269,52 @@ def check_status():
 @app.route('/search', methods=['POST'])
 def search_flights():
     trip_type = request.form['trip_type']
-    departure_airport = request.form['departure_airport']
-    arrival_airport = request.form['arrival_airport']
+    departure_location = request.form['departure_airport']  # Modified variable
+    arrival_location = request.form['arrival_airport']  # Modified variable
     departure_date = request.form['departure_date_time']
     return_date = request.form.get('return_date_time')
 
-    session['departure_airport'] = departure_airport
-    session['arrival_airport'] = arrival_airport
+    def get_airports(location):
+        sql_airports = """
+            SELECT code FROM Airport WHERE city = %s OR code = %s
+        """
+        with conn.cursor() as cursor:
+            cursor.execute(sql_airports, (location, location))
+            return [row['code'] for row in cursor.fetchall()]
+        
+    departure_airports = get_airports(departure_location)
+    arrival_airports = get_airports(arrival_location)
+    session['departure_airport'] = departure_airports
+    session['arrival_airport'] = departure_airports
     session['trip_type'] = trip_type
 
     with conn.cursor() as cursor:
         sql = """
-            SELECT * FROM Flight 
-            WHERE departure_airport = %s 
-            AND arrival_airport = %s 
+            SELECT * FROM Flight
+            WHERE departure_airport IN %s
+            AND arrival_airport IN %s
             AND DATE(departure_date_time) = %s
             AND status != 'Cancelled'
         """
-        cursor.execute(sql, (departure_airport, arrival_airport, departure_date))
+        cursor.execute(sql, (tuple(departure_airports), tuple(arrival_airports), departure_date))
         departure_flights = cursor.fetchall()
 
-    if not departure_flights:
+
+        available_flights = []
+        for flight in departure_flights:
+            is_full, surcharge_applies = is_flight_full(cursor, flight['flight_number'])
+            if not is_full:
+                flight['price'] = calculate_price(float(flight['base_price']), surcharge_applies)
+                flight['departure_date_time'] = flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                flight['arrival_date_time'] = flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                available_flights.append(flight)
+
+    if not available_flights:
         flash('Sorry, no available flights!','warning')
         return(redirect(url_for('home')))
     
     if trip_type == 'one-way':
-        return render_template('flight_results.html', flights=departure_flights,round_trip=False,goPurchase=True)
+        return render_template('flight_results.html', flights=available_flights,round_trip=False,goPurchase=True)
     else:
         session['return_date'] = return_date
         return render_template('flight_results.html', flights=departure_flights, round_trip=False, goPurchase=False)
@@ -296,11 +326,6 @@ def select_return():
     airline_name, flight_number = selected_flight_key.split('-')
     return_date = session.get('return_date')
 
-    # try:
-    #     return_date_parsed = datetime.strptime(session['return_date'], '%Y-%m-%d')
-    # except (ValueError, TypeError):
-    #     flash('Invalid return date format', 'error')
-    #     return redirect(url_for('home'))
     with conn.cursor() as cursor:
         sql = """
             SELECT * FROM Flight 
@@ -312,23 +337,42 @@ def select_return():
         print("Selected flight",selected_flight)
     
     session['selected_departure_flight'] = selected_flight
+    def get_airports(location):
+        sql_airports = """
+            SELECT code FROM Airport WHERE city = %s OR code = %s
+        """
+        with conn.cursor() as cursor:
+            cursor.execute(sql_airports, (location, location))
+            return [row['code'] for row in cursor.fetchall()]
+        
+    departure_airports = get_airports(selected_flight['arrival_airport'])
+    arrival_airports = get_airports(selected_flight['departure_airport'])
 
     with conn.cursor() as cursor:
         sql = """
             SELECT * FROM Flight 
-            WHERE departure_airport = %s 
-            AND arrival_airport = %s 
+            WHERE departure_airport IN %s
+            AND arrival_airport IN %s
             AND DATE(departure_date_time) >= %s
         """
-        cursor.execute(sql, (selected_flight['arrival_airport'], selected_flight['departure_airport'], session['return_date']))
+        cursor.execute(sql, (tuple(departure_airports), tuple(arrival_airports), return_date))
         return_flights = cursor.fetchall()
-    if not return_flights:
-        flash('Sorry, no available flights!','warning')
-        return redirect(url_for('home'))
 
-    return render_template('flight_results.html', flights=return_flights, round_trip=True, goPurchase=True)
-
-
+        if not return_flights:
+            flash('Sorry, no available flights!', 'warning')
+            return redirect(url_for('home'))
+        available_flights = []
+        for flight in return_flights:
+            is_full, surcharge_applies = is_flight_full(cursor, flight['flight_number'])
+            if not is_full:
+                flight['price'] = calculate_price(flight['base_price'], surcharge_applies)
+                flight['departure_date_time'] = flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                flight['arrival_date_time'] = flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                available_flights.append(flight)
+            
+            
+    print(available_flights)
+    return render_template('flight_results.html', flights=available_flights, round_trip=True, goPurchase=True)
 
 @app.route('/purchase', methods=['GET', 'POST'])
 def purchase():
@@ -336,44 +380,68 @@ def purchase():
         if 'userType' not in session or session['userType'] != 'Customer':
             flash('You must be signed in as a Customer to purchase a ticket','error')
             return redirect(url_for('home'))
+        
+        def get_airports(location):
+            sql_airports = """
+                SELECT code FROM Airport WHERE city = %s OR code = %s
+            """
+            with conn.cursor() as cursor:
+                cursor.execute(sql_airports, (location, location))
+                return [row['code'] for row in cursor.fetchall()]
+            
+        
         if session.get('trip_type') == 'one-way':
             selected_flight_key = request.form['selected_flight']
             airline_name, flight_number = selected_flight_key.split('-')
             
             with conn.cursor() as cursor:
                 sql = """
-                    SELECT * FROM Flight 
-                    WHERE airline_name = %s 
+                    SELECT * FROM Flight
+                    WHERE airline_name = %s
                     AND flight_number = %s
                 """
                 cursor.execute(sql, (airline_name, flight_number))
                 selected_flight = cursor.fetchone()
-            
+                _, surcharge_applies = is_flight_full(cursor, flight_number)
+                selected_flight['price'] = calculate_price(float(selected_flight['base_price']), surcharge_applies)
+                selected_flight['departure_date_time'] = selected_flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                selected_flight['arrival_date_time'] = selected_flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
             flights = [selected_flight]
-            price = float(selected_flight['base_price'])
+            price = float(selected_flight['price'])
+            session['price'] = price
+            session['flights'] = flights
         else:
             selected_return_flight_key = request.form['selected_flight']
             airline_name, flight_number = selected_return_flight_key.split('-')
-            
+
             with conn.cursor() as cursor:
                 sql = """
-                    SELECT * FROM Flight 
-                    WHERE airline_name = %s 
+                    SELECT * FROM Flight
+                    WHERE airline_name = %s
                     AND flight_number = %s
                 """
                 cursor.execute(sql, (airline_name, flight_number))
                 selected_return_flight = cursor.fetchone()
-            
-            flights = [session['selected_departure_flight'], selected_return_flight]
-            departure_cost = float(session['selected_departure_flight']['base_price'])
-            return_cost = float(selected_return_flight['base_price'])
+                flights = [session['selected_departure_flight'], selected_return_flight]
+                for flight in flights:
+                    _, surcharge_applies = is_flight_full(cursor, flight['flight_number'])
+                    flight['price'] = calculate_price(flight['base_price'], surcharge_applies)
+                    flight['departure_date_time'] = flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
+                    flight['arrival_date_time'] = flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
+            departure_cost = float(flights[0]['price'])
+            return_cost = float(flights[1]['price'])
             price = departure_cost + return_cost
+            session['price'] = price
             session['flights'] = flights
+            print("Flights", flights)
         return render_template('purchase.html', price=price, flights=flights)
+    return render_template('purchase.html', price=session['price'], flights=session['flights'])
+
     
     # Processing payment
 @app.route('/complete-purchase',methods=['POST'])
 def complete_purchase():
+    first_name, last_name, dob = request.form['first_name'], request.form['last_name'], request.form['dob']
     customer_email = request.form['customer_email']
     payment_info = {
         'card_type': request.form['card_type'],
@@ -382,31 +450,64 @@ def complete_purchase():
         'expiration_date': request.form['expiration_date'],
         'purchase_date_time': datetime.now()
     }
+    if not validate_payment_info(payment_info):
+        print("failed")
+        return redirect(url_for('purchase'))
     flights = session.get('flights', [])
-    
+    if not flights:
+            flash('No flights selected for purchase.', 'error')
+            return redirect(url_for('home'))
     for flight in flights:
-        process_payment(customer_email, flight, payment_info)
+        process_payment(customer_email, flight, payment_info,first_name,last_name,dob)
     
-    flash('Purchase successful', 'success')
+    flash('Payment successful and ticket purchased', 'success')
     return redirect(url_for('home'))
 
 
-def process_payment(customer_email, flight, payment_info):
+# Check if a flight is full or almost full and calculate price
+def is_flight_full(cursor, flight_number):
+    sql = """
+        SELECT A.num_seats, COUNT(T.id) AS booked_seats
+        FROM Airplane A
+        JOIN Flight F ON F.airplane_id = A.id
+        LEFT JOIN Ticket T ON T.flight_number = F.flight_number
+        WHERE F.flight_number = %s
+        GROUP BY A.num_seats
+    """
+    cursor.execute(sql, (flight_number))
+    result = cursor.fetchone()
+    if not result:
+        return False, False  # Flight doesn't exist or no seats booked
+
+    num_seats = result['num_seats']
+    booked_seats = result['booked_seats']
+    is_full = booked_seats >= num_seats
+    surcharge_applies = booked_seats >= 0.8 * num_seats
+
+    return is_full, surcharge_applies
+
+def calculate_price(base_price, surcharge_applies):
+    return base_price * 1.25 if surcharge_applies else base_price
+
+
+def process_payment(customer_email, flight, payment_info,first_name,last_name,dob):
     with conn.cursor() as cursor:
         try:
-            print("First check point")
             year, month = payment_info['expiration_date'].split('-')
             expiration_date = datetime(int(year), int(month), 1).date()
             ticket_sql = """
-                INSERT INTO Ticket (customer_email, flight_number, sold_price, payment_info_card_type, payment_info_card_number, payment_info_name_on_card, payment_info_expiration_date, purchase_date_time)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO Ticket (customer_email, flight_number, first_name, last_name, date_of_birth, sold_price, payment_info_card_type, payment_info_card_number, payment_info_name_on_card, payment_info_expiration_date, purchase_date_time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(
                 ticket_sql,
                 (
                     customer_email,
                     flight['flight_number'],
-                    flight['base_price'],
+                    first_name,
+                    last_name,
+                    dob,
+                    flight['price'],
                     payment_info['card_type'],
                     payment_info['card_number'],
                     payment_info['name_on_card'],
@@ -414,11 +515,7 @@ def process_payment(customer_email, flight, payment_info):
                     payment_info['purchase_date_time']
                 )
             )
-            print("Second check point")
-            print(customer_email,flight,payment_info)
-            
             ticket_id = cursor.lastrowid
-            print("ticketID",ticket_id)
             
             purchase_sql = """
                 INSERT INTO Purchase (ticket_id, customer_email, sold_price, purchase_date_time, card_type, card_number, expiration_date, name_on_card)
@@ -429,7 +526,7 @@ def process_payment(customer_email, flight, payment_info):
                 (
                     ticket_id,
                     customer_email,
-                    flight['base_price'],
+                    flight['price'],
                     payment_info['purchase_date_time'],
                     payment_info['card_type'],
                     payment_info['card_number'],
@@ -438,17 +535,35 @@ def process_payment(customer_email, flight, payment_info):
                 )
             )
             conn.commit()
-            flash('Payment successful and ticket purchased', 'success')
-
         except Exception as e:
             conn.rollback()
             print(f'Error processing payment: {str(e)}')  # More detailed logging
             flash(f'Error processing payment: {str(e)}', 'error')
 
+def validate_payment_info(payment_info):
+    card_number = payment_info['card_number']
+    if not re.fullmatch(r'\d{16}', card_number):
+        flash('Card number must be 16 digits.', 'error')
+        return False
+    if len((payment_info['name_on_card']).split()) < 2:
+        flash('Must have full name on card.', 'error')
+        return False
+    expiration_date = payment_info['expiration_date']
+    try:
+        exp_year, exp_month = map(int, expiration_date.split('-'))
+        expiration_datetime = datetime(exp_year, exp_month, 1)
+        if expiration_datetime < datetime.now():
+            flash('Expired card.', 'error')
+            return False
+    except ValueError:
+        flash('Invalid expiration date format.', 'error')
+        return False
 
-
-def calculate_price(flight):
-    return flight['base_price']
+    name_on_card = payment_info['name_on_card']
+    if not name_on_card or len(name_on_card) > 50:
+        flash('Invalid name on card.', 'error')
+        return False
+    return True
 
 @app.route('/logout')
 def logout():

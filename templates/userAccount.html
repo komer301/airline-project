@@ -1,111 +1,49 @@
 {% extends "account.html" %}
 {% block style %}
     <style>
-    .main {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        padding: 20px;
-    }
-
-    .welcome {
-        flex-basis: 100%;
-        color: #333;
-        padding: 10px;
-        font-size: x-large;
-        border-radius: 5px;
-        text-align: center;
-    }
-
-    .account-info, .user-menu {
-        flex: 1 1 300px; /* Flex-grow, Flex-shrink, Flex-basis */
-        background-color: #666;
-        padding: 20px;
-        margin-bottom: 20px;
-        color: white;
-        border-radius: 5px;
-        margin: 10px;
-    }
-
-    .account-info input, .account-info button, .user-menu a {
-        display: block;
-        width: 95%;
-        margin: 10px auto;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        color: white;
-        text-decoration: none;
-    }
-
-    .user-menu a:hover, .add-phone-form input[type="submit"]:hover, .delete-phone-btn:hover {
-        background-color: #555;
-    }
-
-    .add-phone-form {
-        background-color: #777;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    .add-phone-form input[name="new_phone_number"]  {
-        color: black;
-    }
-
-    .add-phone-form input[type="submit"] {
-        background-color: #333;
-        cursor: pointer;
-    }
-
-    .phone-number-list {
-        list-style-type: none;
+    body, html {
+        margin: 0;
         padding: 0;
+        height: 100%; /* Ensures the full height of the viewport */
+        overflow: hidden; /* Disables scrolling on the body */
+    }
+    .sidebar {
+        width: 200px; /* Width of the sidebar */
+        position: fixed; /* Fixed position */
+        top: 65px; /* Starts right below the nav bar */
+        bottom: 0; /* Stretches to the bottom */
+        background-color: #cccccc; /* Light background color */
+        box-shadow: 2px 0 10px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+        padding: 20px; /* Padding inside the sidebar */
+        overflow-y: auto; /* Allows scrolling within the sidebar if content is tall */
+    }
+    .sidebar a {
+        display: block; /* Full-width links */
+        text-decoration: none; /* No underlines */
+        color: #333; /* Dark color for text */
+        padding: 20px 10px; /* Padding for links */
+        font-size: 16px; /* Slightly larger font size */
+        transition: background-color 0.2s, color 0.2s; /* Smooth transitions for interactions */
+    }
+    .sidebar a:hover {
+        background-color: #eaeaea; /* Light grey background on hover */
+        color: #000; /* Black text on hover for higher contrast */
     }
 
-    .phone-number-item {
-        background-color: #888;
-        margin: 5px 0;
-        padding: 10px;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .content {
+        margin-left: 270px; /* Offset to accommodate sidebar width */
+        padding-right: 40px; /* Generous padding for layout */
+        overflow-y: auto; /* Allows vertical scrolling within content area if needed */
+        height: calc(100vh - 60px); /* Full viewport height minus the height of the top navbar */
+        position: relative;
     }
-
-    .delete-phone-btn {
-        background-color: transparent;
-        color: #f00; /* Red color for delete button */
-        border: none;
-        cursor: pointer;
-        padding: 5px 10px;
+    .display-box {
+        background-color: #ffffff; /* Background of content boxes */
+        border: 1px solid #ccc; /* Light grey border */
+        padding: 20px; /* Padding inside content boxes */
+        margin-bottom: 20px; /* Space between content boxes */
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Soft shadow for depth */
     }
-
-
-    .user-menu ul {
-    list-style-type: none; /* Removes bullet points */
-    padding: 0;
-    margin: 0; /* Removes default margin */
-}
-
-.user-menu li {
-    background-color: #444; /* Dark gray background for each menu item */
-    margin-bottom: 10px; /* Spacing between items */
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.user-menu a {
-    display: block;
-    padding: 15px 20px; /* Larger padding for better touch targets */
-    text-decoration: none;
-    color: white;
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
-}
-
-.user-menu li:hover {
-    background-color: #555; /* Slightly lighter gray on hover */
-}
-    
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -130,47 +68,13 @@
             </div>
         {% endif %}
     {% endwith %}
-    <main>
-        <section class="welcome">
-            <h1>Hello {{ user_first_name }}!</h1>
-        </section>
-        <div class="main">
-            <section class="account-info">
-                <h2>Your Phone Numbers</h2>
-                <ul class="phone-number-list">
-                    {% for number in phone_numbers %}
-                        <li class="phone-number-item">
-                            {{ number }}
-                            <form action="{{ url_for('user.delete_phone_number', phone_number=number) }}"
-                                  method="post">
-                                <button type="submit" class="delete-phone-btn">X</button>
-                            </form>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <form class="add-phone-form"
-                      action="{{ url_for("user.dashboard") }}"
-                      method="post">
-                    <input type="text"
-                           name="new_phone_number"
-                           placeholder="Add New Phone Number"
-                           required>
-                    <input type="submit" value="Add Phone Number">
-                </form>
-            </section>
-            <nav class="user-menu">
-                <ul>
-                    <li>
-                        <a href="#view-flights">View My Flights</a>
-                    </li>
-                    <li>
-                        <a href="#ratings-comments">Ratings/Comments</a>
-                    </li>
-                    <li>
-                        <a href="#my-spending">My Spending</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </main>
+    <div class="sidebar">
+        <a href="/user/my-flights" id="myFlights">My Flights</a>
+        <a href="/user/my-spending" id="mySpending">My Spending</a>
+        <a href="/user/my-reviews" id="myReviews">My Reviews</a>
+        <a href="/user/account-settings" id="accountSettings">Account Settings</a>
+    </div>
+    <div class="content">
+        {% block display %}{% endblock %}
+    </div>
 {% endblock %}

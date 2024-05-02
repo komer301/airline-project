@@ -1,0 +1,236 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+    <style>
+                .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+            width: auto;
+        }
+        .flight-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two-column layout */
+            gap: 15px; /* Gap between form fields */
+            margin-top: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+        }
+        .flights-container {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .flights-section {
+            flex: 1;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .flight-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+        }
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .ticket-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .info-block {
+            display: flex;
+            justify-content: space-between;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .info-value {
+            font-weight: normal;
+            color: #333;
+        }
+        .cancel-btn, .review-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .cancel-btn:hover, .review-btn:hover {
+            background-color: #0056b3;
+        }
+        .no-flights {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+        .filter-form {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .filter-form .form-group {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+        .filter-form input[type="text"], .filter-form input[type="date"], .filter-form select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 200px;
+        }
+        .filter-form .submit-btn {
+            align-self: flex-end;
+            background-color: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .filter-form .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .sidebar #myFlights {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <form action="{{ url_for("user.my_flights") }}"
+              method="post"
+              class="flight-form">
+            <div class="form-group">
+                <label for="from_date">From Date:</label>
+                <input type="date" id="from_date" name="from_date">
+            </div>
+            <div class="form-group">
+                <label for="to_date">To Date:</label>
+                <input type="date" id="to_date" name="to_date">
+            </div>
+            <div class="form-group">
+                <label for="departure_airport">Departure Airport/City:</label>
+                <input type="text"
+                       id="departure_airport"
+                       name="departure_airport"
+                       placeholder="Enter Departure Airport/City">
+            </div>
+            <div class="form-group">
+                <label for="arrival_airport">Arrival Airport/City:</label>
+                <input type="text"
+                       id="arrival_airport"
+                       name="arrival_airport"
+                       placeholder="Enter Arrival Airport/City">
+            </div>
+            <button type="submit" class="submit-btn">Filter</button>
+        </form>
+    </div>
+    <div class="flights-container">
+        <div class="flights-section">
+            <h2>Upcoming Flights</h2>
+            {% if upcoming_flights %}
+                <div class="flight-results">
+                    {% for flight in upcoming_flights %}
+                        <div class="flight-item">
+                            <div class="ticket-header">
+                                <span class="ticket-title">Flight: {{ flight.flight_number }}</span>
+                                <span class="ticket-status">{{ flight.status }}</span>
+                            </div>
+                            <div class="ticket-info">
+                                <div class="info-block">
+                                    <span class="info-label">Departure:</span>
+                                    <span class="info-value">{{ flight.departure_airport }} - {{ flight.departure_date_time.strftime("%Y-%m-%d %I:%M %p") }}</span>
+                                </div>
+                                <div class="info-block">
+                                    <span class="info-label">Arrival:</span>
+                                    <span class="info-value">{{ flight.arrival_airport }} - {{ flight.arrival_date_time.strftime("%Y-%m-%d %I:%M %p") }}</span>
+                                </div>
+                                <div class="info-block">
+                                    <span class="info-label">Price:</span>
+                                    <span class="info-value">${{ flight.price }}</span>
+                                </div>
+                            </div>
+                            {% if flight.can_cancel %}
+                                <form action="{{ url_for('user.cancel_ticket', ticket_id=flight.id) }}"
+                                      method="post">
+                                    <button type="submit" class="cancel-btn">Cancel Ticket</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-flights">No upcoming flights.</p>
+            {% endif %}
+        </div>
+        <div class="flights-section">
+            <h2>Past Flights</h2>
+            {% if past_flights %}
+                <div class="flight-results">
+                    {% for flight in past_flights %}
+                        <div class="flight-item">
+                            <div class="ticket-header">
+                                <span class="ticket-title">Flight: {{ flight.flight_number }}</span>
+                                <span class="ticket-status">{{ flight.status }}</span>
+                            </div>
+                            <div class="ticket-info">
+                                <div class="info-block">
+                                    <span class="info-label">Departure:</span>
+                                    <span class="info-value">{{ flight.departure_airport }} - {{ flight.departure_date_time.strftime("%Y-%m-%d %I:%M %p") }}</span>
+                                </div>
+                                <div class="info-block">
+                                    <span class="info-label">Arrival:</span>
+                                    <span class="info-value">{{ flight.arrival_airport }} - {{ flight.arrival_date_time.strftime("%Y-%m-%d %I:%M %p") }}</span>
+                                </div>
+                                <div class="info-block">
+                                    <span class="info-label">Price:</span>
+                                    <span class="info-value">${{ flight.price }}</span>
+                                </div>
+                            </div>
+                            {% if flight.can_review %}
+                                <form action="{{ url_for('user.review_flight', flight_id=flight.id) }}"
+                                      method="get">
+                                    <button type="submit" class="review-btn">Review Flight</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-flights">No past flights.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .back-btn {
+            margin-top: 20px;
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>Passengers on Flight {{ flight_number }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Date of Birth</th>
+                    <th>Customer Email</th>
+                    <th>Sold Price</th>
+                    <th>Purchase Date Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for passenger in passengers %}
+                    <tr>
+                        <td>{{ passenger['id'] }}</td>
+                        <td>{{ passenger['first_name'] }}</td>
+                        <td>{{ passenger['last_name'] }}</td>
+                        <td>{{ passenger['date_of_birth'] }}</td>
+                        <td>{{ passenger['customer_email'] }}</td>
+                        <td>${{ passenger['sold_price'] }}</td>
+                        <td>{{ passenger['purchase_date_time'].strftime("%Y-%m-%d %I:%M %p") }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for("staff.upcoming_flights") }}" class="back-btn">Back to Flights</a>
+    </div>
+{% endblock %}

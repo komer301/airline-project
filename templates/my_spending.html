@@ -1,0 +1,109 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            width: auto;
+            max-width: 800px;
+        }
+        .spending-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .sidebar #mySpending {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h2>Track My Spending</h2>
+        <form action="{{ url_for("user.track_spending") }}"
+              method="post"
+              class="spending-form">
+            <div class="form-group">
+                <label for="from_date">From Date:</label>
+                <input type="date" id="from_date" name="from_date">
+            </div>
+            <div class="form-group">
+                <label for="to_date">To Date:</label>
+                <input type="date" id="to_date" name="to_date">
+            </div>
+            <button type="submit" class="submit-btn">Track Spending</button>
+        </form>
+        <div class="spending-summary">
+            <h3>Total Spent in Last Year: ${{ total_spent_last_year }}</h3>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Monthly Spending ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(months|length) %}
+                        <tr>
+                            <td>{{ months[i] }}</td>
+                            <td>{{ monthly_spending[i] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

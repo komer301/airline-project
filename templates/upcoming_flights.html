@@ -78,11 +78,19 @@
         }
 
         .ticket-status {
-            background-color: #ffcc00;
             border-radius: 4px;
             padding: 4px 8px;
             font-size: 14px;
             color: #333;
+        }
+        .on-time {
+            background-color: #28a745; /* Green */
+        }
+        .delayed {
+            background-color: #ffcc00; /* Yellow */
+        }
+        .canceled {
+            background-color: #dc3545; /* Red */
         }
 
         .ticket-info {
@@ -160,7 +168,7 @@
                     <div class="flight-item">
                         <div class="ticket-header">
                             <span class="ticket-title">Flight: {{ f.flight_number }}</span>
-                            <span class="ticket-status">{{ f.status }}</span>
+                            <span class="ticket-status {% if f['status'] == 'On Time' %} on-time {% elif f['status'] == 'Delayed' %} delayed {% elif f['status'] == 'Cancelled' %} canceled {% endif %}">{{ f.status }}</span>
                         </div>
                         <div class="ticket-info">
                             <div class="info-block">
@@ -180,7 +188,8 @@
                                 <span class="info-value">${{ f.base_price }}</span>
                             </div>
                         </div>
-                        <a class="view-customers-btn">View Customers</a>
+                        <a href="{{ url_for('staff.flight_passengers', flight_number=f['flight_number']) }}"
+                           class="view-customers-btn">View Passengers</a>
                     </div>
                 {% endfor %}
             </div>

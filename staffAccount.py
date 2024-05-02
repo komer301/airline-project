@@ -245,7 +245,31 @@ def upcoming_flights():
         flights = query_flights(airline_name, from_date, to_date, departure_airport, arrival_airport)
     else:
         flights = query_flights(airline_name)
+    for flight in flights:
+        flight['departure_date_time'] = flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
+        flight['arrival_date_time'] = flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
     return render_template('upcoming_flights.html', flights=flights)
+
+@staff_bp.route('/flight/<flight_number>/passengers', methods=['GET'])
+def flight_passengers(flight_number):
+    if 'userType' not in session or session['userType'] != 'Staff':
+        flash("Unauthorized access.", "error")
+        return redirect(url_for('home'))
+
+    airline_name = get_airline_name_from_staff(session['user'])
+    passengers = []
+
+    with conn.cursor() as cursor:
+        sql = """
+            SELECT t.id, t.customer_email, t.first_name, t.last_name, t.date_of_birth, t.sold_price, t.purchase_date_time
+            FROM Ticket t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s AND f.flight_number = %s
+        """
+        cursor.execute(sql, (airline_name, flight_number))
+        passengers = cursor.fetchall()
+
+    return render_template('flight_passengers.html', passengers=passengers, flight_number=flight_number)
 
 
 @staff_bp.route('/account-settings', methods=['GET', 'POST'])
@@ -302,6 +326,172 @@ def staff_settings():
         emails=emails,
         phone_numbers=phone_numbers, staff_first_name=first_name
     )
+
+@staff_bp.route('/frequent-customer', methods=['GET'])
+def frequent_customer():
+    username = session.get('user')
+    airline_name = get_airline_name_from_staff(username)
+    
+    if not airline_name:
+        flash("Airline name not found for this staff member.", "error")
+        return redirect(url_for('staff.dashboard'))
+    
+    one_year_ago = datetime.now() - timedelta(days=365)
+    frequent_customer_data = None
+    taken_flights = []
+
+    with conn.cursor() as c:
+        # Query to find the most frequent customer in the last year
+        frequent_customer_query = """
+            SELECT t.customer_email, COUNT(*) AS num_flights
+            FROM Ticket t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s AND t.purchase_date_time > %s
+            GROUP BY t.customer_email
+            ORDER BY num_flights DESC
+            LIMIT 1
+        """
+        c.execute(frequent_customer_query, (airline_name, one_year_ago))
+        frequent_customer_data = c.fetchone()
+        
+        if frequent_customer_data:
+            customer_email = frequent_customer_data['customer_email']
+            
+            # Query to get all flights taken by the customer in the airline
+            flights_query = """
+                SELECT f.flight_number, f.departure_date_time, f.arrival_date_time,
+                       f.departure_airport, f.arrival_airport, t.sold_price
+                FROM Ticket t
+                JOIN Flight f ON t.flight_number = f.flight_number
+                WHERE t.customer_email = %s AND f.airline_name = %s
+                ORDER BY f.departure_date_time
+            """
+        c.execute(flights_query, (customer_email, airline_name))
+        taken_flights = c.fetchall()
+        
+        customer_name = """
+                SELECT CONCAT(first_name, ' ' ,last_name) AS full_name
+                FROM Customer 
+                WHERE email = %s
+            """
+        c.execute(customer_name, (customer_email))
+        customer_name = c.fetchall()
+        customer_name = customer_name[0]['full_name']
+
+    return render_template('frequent_customer.html', customer_name=customer_name,frequent_customer_data=frequent_customer_data, taken_flights=taken_flights)
+
+@staff_bp.route('/view-earnings', methods=['GET', 'POST'])
+def view_earnings():
+    username = session.get('user')
+    airline_name = get_airline_name_from_staff(username)
+
+    if not airline_name:
+        flash("Airline name not found for this staff member.", "error")
+        return redirect(url_for('staff.dashboard'))
+    
+    with conn.cursor() as c:
+        # Start of last month and last year
+        last_month_start = datetime.now().replace(day=1) - timedelta(days=1)
+        last_month_start = last_month_start.replace(day=1)
+
+        last_year_start = datetime.now().replace(month=1, day=1) - timedelta(days=1)
+        last_year_start = last_year_start.replace(month=1, day=1)
+        
+        # Query for last month earnings
+        query_last_month = """
+            SELECT SUM(t.sold_price) AS total_revenue_last_month
+            FROM Ticket t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s AND t.purchase_date_time >= %s
+        """
+        c.execute(query_last_month, (airline_name, last_month_start))
+        last_month_row = c.fetchone()
+        last_month = float(last_month_row['total_revenue_last_month']) if last_month_row and last_month_row['total_revenue_last_month'] else 0.00
+        
+        # Query for last year earnings
+        query_last_year = """
+            SELECT SUM(t.sold_price) AS total_revenue_last_year
+            FROM Ticket t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s AND t.purchase_date_time >= %s
+        """
+        c.execute(query_last_year, (airline_name, last_year_start))
+        last_year_row = c.fetchone()
+        last_year = float(last_year_row['total_revenue_last_year']) if last_year_row and last_year_row['total_revenue_last_year'] else 0.00
+    selected_month = None
+    tickets = []
+
+    if request.method == 'POST':
+        # Extract and format the selected month
+        month_str = request.form['month']
+        selected_month = datetime.strptime(month_str, "%Y-%m").strftime("%B %Y")
+        
+        start_date = datetime.strptime(month_str, "%Y-%m")
+        end_date = (start_date.replace(month=start_date.month % 12 + 1, day=1)
+                    if start_date.month != 12
+                    else start_date.replace(year=start_date.year + 1, month=1, day=1))
+        
+        with conn.cursor() as c:
+            ticket_query = """
+                SELECT t.id, t.customer_email, t.flight_number, t.sold_price, t.purchase_date_time
+                FROM Ticket t
+                JOIN Flight f ON t.flight_number = f.flight_number
+                WHERE f.airline_name = %s AND t.purchase_date_time >= %s AND t.purchase_date_time < %s
+            """
+            c.execute(ticket_query, (airline_name, start_date, end_date))
+            tickets = c.fetchall()
+    else:
+        start_date = datetime.now().replace(day=1) - timedelta(days=1)
+        start_date = start_date.replace(day=1)
+        selected_month = start_date.strftime("%B %Y")
+    
+    end_date = (start_date.replace(month=start_date.month % 12 + 1, day=1)
+                if start_date.month != 12
+                else start_date.replace(year=start_date.year + 1, month=1, day=1))
+    with conn.cursor() as c: 
+        ticket_query = """
+            SELECT t.id, t.customer_email, t.flight_number, t.sold_price, t.purchase_date_time
+            FROM Ticket t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s AND t.purchase_date_time >= %s AND t.purchase_date_time < %s
+        """
+        c.execute(ticket_query, (airline_name, start_date, end_date))
+        tickets = c.fetchall()
+
+        for ticket in tickets:
+            # Format purchase_date_time to "Month Day Year Hour:Minute AM/PM"
+            purchase_date_time = ticket['purchase_date_time']
+            ticket['purchase_date_time'] = purchase_date_time.strftime("%B %d %Y %I:%M %p")
+            
+    return render_template('view_earnings.html', last_month=last_month, last_year=last_year,
+                           selected_month=selected_month, tickets=tickets)
+
+
+@staff_bp.route('/view-ratings', methods=['GET'])
+def view_ratings():
+    username = session.get('user')
+    airline_name = get_airline_name_from_staff(username)
+
+    if not airline_name:
+        flash("Airline name not found for this staff member.", "error")
+        return redirect(url_for('staff.dashboard'))
+
+    with conn.cursor() as c:
+        ratings_query = """
+            SELECT t.flight_number, f.departure_airport, f.arrival_airport, 
+                   AVG(t.rating) AS avg_rating, 
+                   GROUP_CONCAT(t.comment ORDER BY t.comment) AS comments
+            FROM Took t
+            JOIN Flight f ON t.flight_number = f.flight_number
+            WHERE f.airline_name = %s
+            GROUP BY t.flight_number, f.departure_airport, f.arrival_airport
+            ORDER BY t.flight_number
+        """
+        c.execute(ratings_query, (airline_name,))
+        flight_ratings = c.fetchall()
+
+    return render_template('view_ratings.html', flight_ratings=flight_ratings)
+
 
 @staff_bp.route('/delete_phone_number/<phone_number>', methods=['POST'])
 def delete_phone_number(phone_number):

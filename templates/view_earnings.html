@@ -1,0 +1,114 @@
+{% extends 'staff_account.html' %}
+{% block style2 %}
+    <style>
+        .display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .display h1 {
+            color: black;
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+        .revenue-info, .month-form, .ticket-table {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .month-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .month-form input[type="month"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        .month-form button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .month-form button:hover {
+            background-color: #0056b3;
+        }
+        .ticket-table table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .ticket-table th, .ticket-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .ticket-table th {
+            background-color: #007bff;
+            color: white;
+        }
+        .sidebar #viewEarnings {
+            background-color: #eaeaea;
+            color: #000;
+        }
+    </style>
+{% endblock %}
+{% block display %}
+    <div class="display">
+        <h1>Total Earned Revenue</h1>
+        <div class="revenue-info">
+            <strong>Last Month:</strong> ${{ last_month }}
+        </div>
+        <div class="revenue-info">
+            <strong>Last Year:</strong> ${{ last_year }}
+        </div>
+        <div class="month-form">
+            <form action="{{ url_for("staff.view_earnings") }}" method="POST">
+                <label for="month">Select Month:</label>
+                <input type="month" name="month" required>
+                <button type="submit">View Tickets</button>
+            </form>
+        </div>
+        {% if tickets %}
+            <div class="ticket-table">
+                <h2>Tickets Sold in {{ selected_month }}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Customer Email</th>
+                            <th>Flight Number</th>
+                            <th>Sold Price</th>
+                            <th>Purchase Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                            <tr>
+                                <td>{{ ticket['id'] }}</td>
+                                <td>{{ ticket['customer_email'] }}</td>
+                                <td>{{ ticket['flight_number'] }}</td>
+                                <td>${{ ticket['sold_price'] }}</td>
+                                <td>{{ ticket['purchase_date_time'] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
