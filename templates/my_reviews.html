@@ -1,0 +1,124 @@
+{% extends 'userAccount.html' %}
+{% block style2 %}
+<style>
+    .reviews-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    }
+
+    .reviews-section {
+        flex: 1;
+    }
+
+    .reviews-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .review-item {
+        margin-bottom: 15px;
+    }
+
+    .review-rating {
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+    .no-reviews {
+        font-style: italic;
+    }
+
+    .leave-review-section {
+        flex: 1;
+        margin-left:15px;
+    }
+
+    .review-form {
+        display: grid;
+        gap: 10px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        transition: border-color 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+        border-color: #0056b3;
+    }
+
+    .submit-review-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .submit-review-btn:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+{% block display %}
+    <div class="reviews-container">
+        <div class="reviews-section">
+            <h2>My Reviews</h2>
+            {% if reviews %}
+                <ul class="reviews-list">
+                    {% for review in reviews %}
+                        <li class="review-item">
+                            <p class="review-rating">Rating: 
+                                <div class="rating">
+                                    {% for i in range(1, 6) %}
+                                        <span class="star{% if review.rating >= i %} active{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                </div>
+                            </p>
+                            <p class="review-comment">Comment: {{ review.comment }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="no-reviews">No comments/ratings have been left behind.</p>
+            {% endif %}
+        </div>
+
+        <div class="leave-review-section">
+            <h2>Leave a Review</h2>
+            <form action="{{ url_for('user.my_reviews') }}" method="post" class="review-form">
+                <div class="form-group">
+                    <label for="flight_id">Ticket ID:</label>
+                    <input type="text" id="flight_id" name="flight_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="rating">Rating:</label>
+                    <input type="number" id="rating" name="rating" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comment:</label>
+                    <textarea id="comment" name="comment" required></textarea>
+                </div>
+                <button type="submit" class="submit-review-btn">Submit Review</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
