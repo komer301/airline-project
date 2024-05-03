@@ -327,35 +327,31 @@ def my_reviews():
     customer_email = session['userEmail']
     
     if request.method == 'POST':
-        ticket_id = request.form.get('ticket_id')
+        flight_num = request.form.get('flight_id')
         rating = request.form.get('rating')
         comment = request.form.get('comment')
         
         # Check if the ticket corresponds to a flight that has already been taken
         check_query = """
         SELECT 1
-        FROM ticket t
-        JOIN took tk ON t.flight_id = tk.flight_id
-        JOIN flight f ON t.flight_id = f.flight_id
-        WHERE t.id = %s AND tk.email = %s AND f.arrival_date_time <= CURRENT_TIMESTAMP
+        FROM took t
+        WHERE t.flight_number = %s AND t.email = %s
         """
 
         try:
             with conn.cursor() as cursor:
-                cursor.execute(check_query, (ticket_id, customer_email))
+                cursor.execute(check_query, (flight_num, customer_email))
                 result = cursor.fetchone()
                 
                 if result:
                     # If the ticket corresponds to a taken flight, update the rating and comment
                     update_query = """
-                    UPDATE took
+                    UPDATE Took
                     SET rating = %s, comment = %s
-                    WHERE email = %s AND flight_id = (
-                        SELECT flight_id FROM ticket WHERE id = %s
-                    )
+                    WHERE email = %s AND flight_number = %s
                     """
                     
-                    cursor.execute(update_query, (rating, comment, customer_email, ticket_id))
+                    cursor.execute(update_query, (rating, comment, customer_email, flight_num))
                     conn.commit()
                     flash("Review submitted successfully.", "success")
                 else:
@@ -365,9 +361,8 @@ def my_reviews():
             flash(str(e), 'error')
         return redirect(url_for('user.my_reviews'))
 
-    
     select_query = """
-    SELECT rating, comment
+    SELECT flight_number, rating, comment
     FROM took
     WHERE email = %s AND rating IS NOT NULL AND comment IS NOT NULL
     """
@@ -380,7 +375,6 @@ def my_reviews():
     except Exception as e:
         flash(str(e), 'error')
         return redirect(url_for('home'))
-
 
 @user_bp.route('/account-settings', methods=['GET', 'POST'])
 def user_settings():
