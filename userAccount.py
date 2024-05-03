@@ -12,7 +12,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/user')
 conn = pymysql.connect(host='localhost',
                        user='root',
                        password='root',
-                       db='Air Ticket Reservation System',
+                       db='Air Ticket Reservation System2',
                        unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)

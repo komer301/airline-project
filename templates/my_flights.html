@@ -220,7 +220,7 @@
                                 </div>
                             </div>
                             {% if flight.can_review %}
-                                <form action="{{ url_for('user.review_flight', flight_id=flight.id) }}"
+                                <form action="{{ url_for('user.review_flight', flight_number=flight.flight_number) }}"
                                       method="get">
                                     <button type="submit" class="review-btn">Review Flight</button>
                                 </form>

@@ -19,7 +19,7 @@ app.register_blueprint(user_bp, url_prefix='/user')
 conn = pymysql.connect(host='localhost',
                        user='root',
                        password='root',
-                       db='Air Ticket Reservation System',
+                       db='Air Ticket Reservation System2',
                        unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
