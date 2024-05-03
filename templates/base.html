@@ -112,7 +112,7 @@
             </div>
             <div class="navbar-right">
                 {% if (session['userType'] == 'Customer') %}
-                    <a href="{{ url_for("user.dashboard") }}">Account</a>
+                    <a href="{{ url_for("user.my_flights") }}">Account</a>
                     <a href="{{ url_for("logout") }}">Logout</a>
                 {% elif (session['userType'] == 'Staff') %}
                     <a href="{{ url_for("staff.upcoming_flights") }}">Account</a>

@@ -168,7 +168,7 @@
                     <div class="flight-item">
                         <div class="ticket-header">
                             <span class="ticket-title">Flight: {{ f.flight_number }}</span>
-                            <span class="ticket-status {% if f['status'] == 'On Time' %} on-time {% elif f['status'] == 'Delayed' %} delayed {% elif f['status'] == 'Cancelled' %} canceled {% endif %}">{{ f.status }}</span>
+                            <span class="ticket-status {% if f['status'] == 'on-time' %} on-time {% elif f['status'] == 'delayed' %} delayed {% elif f['status'] == 'cancelled' %} canceled {% endif %}">{{ f.status }}</span>
                         </div>
                         <div class="ticket-info">
                             <div class="info-block">

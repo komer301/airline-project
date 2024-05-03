@@ -125,6 +125,15 @@
             background-color: #eaeaea;
             color: #000;
         }
+        .on-time {
+            background-color: #28a745; /* Green */
+        }
+        .delayed {
+            background-color: #ffcc00; /* Yellow */
+        }
+        .canceled {
+            background-color: #dc3545; /* Red */
+        }
     </style>
 {% endblock %}
 {% block display %}
@@ -166,7 +175,7 @@
                         <div class="flight-item">
                             <div class="ticket-header">
                                 <span class="ticket-title">Flight: {{ flight.flight_number }}</span>
-                                <span class="ticket-status">{{ flight.status }}</span>
+                                <span class="ticket-status {% if flight['status'] == 'on-time' %} on-time {% elif  flight['status'] == 'delayed' %} delayed {% elif  flight['status'] == 'cancelled' %} canceled {% endif %}">{{ flight.status }}</span>
                             </div>
                             <div class="ticket-info">
                                 <div class="info-block">
@@ -203,7 +212,7 @@
                         <div class="flight-item">
                             <div class="ticket-header">
                                 <span class="ticket-title">Flight: {{ flight.flight_number }}</span>
-                                <span class="ticket-status">{{ flight.status }}</span>
+                                <span class="ticket-status {% if flight['status'] == 'on-time' %} on-time {% elif  flight['status'] == 'delayed' %} delayed {% elif  flight['status'] == 'cancelled' %} canceled {% endif %}">{{ flight.status }}</span>
                             </div>
                             <div class="ticket-info">
                                 <div class="info-block">

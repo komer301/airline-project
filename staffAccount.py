@@ -248,6 +248,7 @@ def upcoming_flights():
     for flight in flights:
         flight['departure_date_time'] = flight['departure_date_time'].strftime('%Y-%m-%d %I:%M %p')
         flight['arrival_date_time'] = flight['arrival_date_time'].strftime('%Y-%m-%d %I:%M %p')
+    print(flight['status'])
     return render_template('upcoming_flights.html', flights=flights)
 
 @staff_bp.route('/flight/<flight_number>/passengers', methods=['GET'])

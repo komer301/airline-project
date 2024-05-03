@@ -365,22 +365,21 @@ def my_reviews():
             flash(str(e), 'error')
         return redirect(url_for('user.my_reviews'))
 
-    else:
-        select_query = """
-        SELECT rating, comment
-        FROM took
-        WHERE email = %s AND rating IS NOT NULL AND comment IS NOT NULL
-        """
-        
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute(select_query, (customer_email,))
-                reviews = cursor.fetchall()
-                
-                return render_template('my_reviews.html', reviews=reviews)
-        except Exception as e:
-            flash(str(e), 'error')
-            return redirect(url_for('home'))
+    
+    select_query = """
+    SELECT rating, comment
+    FROM took
+    WHERE email = %s AND rating IS NOT NULL AND comment IS NOT NULL
+    """
+    
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(select_query, (customer_email,))
+            reviews = cursor.fetchall()
+            return render_template('my_reviews.html', reviews=reviews)
+    except Exception as e:
+        flash(str(e), 'error')
+        return redirect(url_for('home'))
 
 
 @user_bp.route('/account-settings', methods=['GET', 'POST'])
